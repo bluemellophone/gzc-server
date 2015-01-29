@@ -1,6 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
-  
-  ### ADD GPS FORM HERE ###
-
+  <div class="jumbotron">
+    <h1>Import gps</h1>
+    
+    <form action="/gps/submit" method="post" enctype="multipart/form-data">
+        <input type="" name="car_color"/>
+        <input type="" name="car_number"/>
+        <input type="" name="gps_start_time_hour"/>
+        <input type="" name="gps_start_time_minute"/>
+        <input type="file" name="gps_archive"/>
+        <input type="submit" value="Import GPS" name="submit">
+    </form>
+  </div>
 {% endblock %}

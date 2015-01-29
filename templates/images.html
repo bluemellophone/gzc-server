@@ -1,6 +1,16 @@
 {% extends "layout.html" %}
 {% block content %}
-  
-  ### ADD IMAGES FORM HERE ###
-
+  <div class="jumbotron">
+    <h1>Import images</h1>
+    
+    <form action="/images/submit" method="post" enctype="multipart/form-data">
+        <input type="" name="car_color"/>
+        <input type="" name="car_number"/>
+        <input type="" name="person_letter"/>
+        <input type="" name="image_first_time_hour"/>
+        <input type="" name="image_first_time_minute"/>
+        <input type="file" name="image_archive"/>
+        <input type="submit" value="Import Images" name="submit">
+    </form>
+  </div>
 {% endblock %}

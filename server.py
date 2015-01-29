@@ -8,7 +8,7 @@ from flask import request, redirect, url_for, make_response  # NOQA
 import optparse
 import logging
 import socket
-import simplejson as json  # NOQA
+import simplejson as json
 # IBEIS
 import ibeis
 import utool  # NOQA
@@ -40,6 +40,7 @@ def index():
 def images():
     print("GET: ", request.args)
     print("POST:", request.form)
+    return response()
 
 
 @app.route('/images/form')
@@ -51,6 +52,7 @@ def images_form():
 def gps():
     print("GET: ", request.args)
     print("POST:", request.form)
+    return response()
 
 
 @app.route('/gps/form')
@@ -69,6 +71,7 @@ def review(car, person):
 def print_html(car, person):
     print("GET: ", request.args)
     print("POST:", request.form)
+    return response()
 
 
 ################################################################################
@@ -83,6 +86,22 @@ def template(template_name=None, **kwargs):
     _global_args.update(kwargs)
     print(template_)
     return flask.render_template(template_, **_global_args)
+
+
+def response(code=0, message='', **kwargs):
+    '''
+        CODES:
+            0 - Sucess / Nominal
+    '''
+    resp = {
+        'status': {
+            'code': code,
+            'message': message,
+        }
+    }
+    if kwargs:
+        resp['data'] = kwargs
+    return json.dumps(resp)
 
 
 ################################################################################
