@@ -58,12 +58,14 @@ def gps_form():
     return template('gps')
 
 
-@app.route('review/<car>/<person>')
+@app.route('/review/<car>/<person>')
 def review(car, person):
+    print("CAR:", car)
+    print("PARSON:", person)
     return template('review')
 
 
-@app.route('print', methods=['POST'])
+@app.route('/print', methods=['POST'])
 def print_html(car, person):
     print("GET: ", request.args)
     print("POST:", request.form)
