@@ -38,7 +38,8 @@ def index():
 
 @app.route('/images/submit', methods=['POST'])
 def images():
-    print(request.form)
+    print("GET: ", request.args)
+    print("POST:", request.form)
 
 
 @app.route('/images/form')
@@ -48,12 +49,24 @@ def images_form():
 
 @app.route('/gps/submit', methods=['POST'])
 def gps():
-    print(request.form)
+    print("GET: ", request.args)
+    print("POST:", request.form)
 
 
 @app.route('/gps/form')
 def gps_form():
     return template('gps')
+
+
+@app.route('review/<car>/<person>')
+def review(car, person):
+    return template('review')
+
+
+@app.route('print', methods=['POST'])
+def print_html(car, person):
+    print("GET: ", request.args)
+    print("POST:", request.form)
 
 
 ################################################################################
