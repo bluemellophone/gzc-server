@@ -32,35 +32,15 @@ global_args = {
 
 ################################################################################
 
+
 @app.route('/')
 def index():
     return template(None)
 
 
-@app.route('/images/submit', methods=['POST'])
-def images():
-    print("GET:  ", request.args)
-    print("POST: ", request.form)
-    print("FILES:", request.files)
-    image_archive = request.files['image_archive']
-    print(image_archive)
-    if not exists('cache'):
-        mkdir('cache')
-    image_archive.save('cache/test.zip')
-    return response()
-
-
 @app.route('/images/form')
 def images_form():
     return template('images')
-
-
-@app.route('/gps/submit', methods=['POST'])
-def gps():
-    print("GET: ", request.args)
-    print("POST:", request.form)
-    print("FILES:", request.files)
-    return response()
 
 
 @app.route('/gps/form')
@@ -70,16 +50,48 @@ def gps_form():
 
 @app.route('/review/<car>/<person>')
 def review(car, person):
+    # Jason will work on this function
     print("CAR:", car)
     print("PARSON:", person)
     return template('review')
 
 
-@app.route('/print', methods=['POST'])
-def print_html(car, person):
+################################################################################
+
+
+@app.route('/images/submit', methods=['POST'])
+def images():
+    # Hendrik, I need help here   -Jason
+    print("GET:  ", request.args)
+    print("POST: ", request.form)
+    print("FILES:", request.files)
+    image_archive = request.files['image_archive']
+    if not exists('cache'):
+        mkdir('cache')
+    image_archive.save('cache/test.zip')
+    return response()
+
+
+@app.route('/gps/submit', methods=['POST'])
+def gps():
+    # Hendrik, I need help here   -Jason
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
+    return response()
+
+
+@app.route('/print', methods=['POST'])
+def print_html(car, person):
+    # Zach, I need help here   -Jason
+    print("GET: ", request.args)
+    print("POST:", request.form)
+    print("FILES:", request.files)
+    # This function needs to call wkhtmltopdf with the HTML content in the POST
+    # variable 'html_content'.  The wkhtmltopdf code will take the html file
+    # and render it to PDF.  Then, the file needs to be sent to a printer by some
+    # Python module, see:
+    #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
     return response()
 
 
@@ -135,6 +147,10 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     if browser:
         import webbrowser
         webbrowser.open(url)
+
+    # Reconstruct data state
+    # TODO: RECONSTRUCT THE STATE OF THE DATA FROM THE FILES
+
     # Blocking
     _start_tornado()
     # if blocking:
