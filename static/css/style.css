@@ -1,0 +1,117 @@
+
+.header
+{
+  height: 40px;
+}
+
+.content
+{
+  margin-top: 10px;
+}
+
+.row-custom-expand
+{
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.col-custom-span-8
+{
+/*   text-align: center; */
+  width: 11.5%;
+  display: inline-block;
+}
+
+.rotate-45 {
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.image-center
+{
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.ui-widget-content
+{
+  background: transparent;
+}
+
+.ui-rotatable-handle
+{
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  margin-left: -3px;
+}
+
+.ui-icon, .ui-widget-content .ui-icon
+{
+  background-image: none;
+}
+
+.ui-rotatable-handle {
+  height: 10px;
+  width: 10px;
+  border-radius: 5px;
+  cursor: 'grab';
+  background-image: none;
+  left: 50%;
+  margin-left: -1px; 
+  top: 10px;
+  background-color: rgb(127,255,127);
+  border: 1px solid #000000;
+}
+.ui-resizable-handle 
+{
+  width: 8px;
+  height: 8px;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 4px;
+}
+.ui-resizable-nw 
+{
+  left: -4px;
+  top: -4px;
+}
+.ui-resizable-ne 
+{
+  top: -4px;
+  right: -4px;
+}
+.ui-resizable-sw 
+{
+  bottom: -4px;
+  left: -4px;
+}
+.ui-resizable-se 
+{
+  bottom: -4px;
+  right:-4px;
+}
+.ui-resizable-n
+{
+  top: -4px;
+  left:50%;
+}
+.ui-resizable-s 
+{
+  bottom: -4px;
+  left: 50%;
+}
+.ui-resizable-w 
+{
+  left:-4px;
+  top:50%;
+}
+.ui-resizable-e 
+{
+  right:-4px;
+  top:50%;
+}
