@@ -65,6 +65,7 @@ def images():
     print("GET:  ", request.args)
     print("POST: ", request.form)
     print("FILES:", request.files)
+
     person_letter = request.form['person_letter']
     car_number = request.form['car_number']
     car_color = request.form['car_color']
@@ -82,6 +83,7 @@ def images():
     person_dir = join(car_dir, person_letter)
     if not exists(person_dir):
         mkdir(person_dir)  
+    
     image_archive.save(join(person_dir, 'test.zip'))
 
     return response()
@@ -93,6 +95,23 @@ def gps():
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
+
+    car_number = request.form['car_number']
+    car_color = request.form['car_color']
+    gps_data = request.files['gps_data']
+
+    data_dir = 'data' # this should eventually be an option
+    if not exists(data_dir):
+        mkdir(data_dir)
+    gps_dir = join(data_dir, 'gps')
+    if not exists(gps_dir):
+        mkdir(gps_dir)
+    car_dir = join(gps_dir, car_number + car_color)
+    if not exists(car_dir):
+        mkdir(car_dir)
+
+    gps_data.save(join(car_dir, 'dummy_gps.csv'))
+
     return response()
 
 
