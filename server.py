@@ -17,7 +17,8 @@ import utool as ut
 import serverfuncs, navbar  # NOQA
 # Others
 from datetime import date
-from os.path import join  # NOQA
+from os.path import join, exists  # NOQA
+from os import mkdir
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -38,8 +39,14 @@ def index():
 
 @app.route('/images/submit', methods=['POST'])
 def images():
-    print("GET: ", request.args)
-    print("POST:", request.form)
+    print("GET:  ", request.args)
+    print("POST: ", request.form)
+    print("FILES:", request.files)
+    image_archive = request.files['image_archive']
+    print(image_archive)
+    if not exists('cache'):
+        mkdir('cache')
+    image_archive.save('cache/test.zip')
     return response()
 
 
@@ -52,6 +59,7 @@ def images_form():
 def gps():
     print("GET: ", request.args)
     print("POST:", request.form)
+    print("FILES:", request.files)
     return response()
 
 
@@ -71,6 +79,7 @@ def review(car, person):
 def print_html(car, person):
     print("GET: ", request.args)
     print("POST:", request.form)
+    print("FILES:", request.files)
     return response()
 
 
