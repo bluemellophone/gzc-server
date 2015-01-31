@@ -17,6 +17,7 @@ import utool as ut
 # Web Internal
 import serverfuncs, navbar  # NOQA
 # Others
+import zipfile
 from datetime import date
 from os.path import join, exists  # NOQA
 from os import mkdir
@@ -84,8 +85,9 @@ def images():
     person_dir = join(car_dir, person_letter)
     if not exists(person_dir):
         mkdir(person_dir)  
-    
-    image_archive.save(join(person_dir, 'test.zip'))
+
+    with zipfile.ZipFile(image_archive, 'r') as zfile:
+        zfile.extractall(person_dir)
 
     return response()
 
