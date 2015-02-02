@@ -19,12 +19,13 @@ import serverfuncs, navbar  # NOQA
 # Others
 import zipfile
 from datetime import date
-from os.path import join, exists  # NOQA
-from os import mkdir
+from os.path import join, exists, realpath  # NOQA
+from os import mkdir, listdir
 
 
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
+DEFAULT_DATA_DIR = 'data'
 app = flask.Flask(__name__)
 global_args = {
     'NAVBAR': navbar.NavbarClass(),
@@ -73,7 +74,7 @@ def images():
     car_color = request.form['car_color']
     image_archive = request.files['image_archive']
 
-    data_dir = 'data' # this should eventually be an option
+    data_dir = DEFAULT_DATA_DIR # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
     image_dir = join(data_dir, 'images')
@@ -89,6 +90,10 @@ def images():
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
 
+    analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_PLAIN)
+    #analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_GREVY)
+    #analyze(car_number + car_color, person_letter, ibeis.constants.Species.GIRAFFE)
+
     return response()
 
 
@@ -103,7 +108,7 @@ def gps():
     car_color = request.form['car_color']
     gps_data = request.files['gps_data']
 
-    data_dir = 'data' # this should eventually be an option
+    data_dir = DEFAULT_DATA_DIR # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
     gps_dir = join(data_dir, 'gps')
@@ -197,6 +202,24 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     #     threading.Thread(target=_start_tornado).start()
 
 
+def analyze(car, person, species):
+    if species == ibeis.constants.Species.ZEB_PLAIN or species == ibeis.constants.Species.ZEB_GREVY:
+        animal = 'zebra'
+    elif species == ibeis.constants.Species.GIRAFFE:
+        animal = 'giraffe' 
+
+    imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
+
+    print('Analyzing images in %s...' % imdir)
+    img_names = listdir(imdir)
+    gpaths = [realpath(join(imdir, imname)) for imname in img_names]
+    gid_list = app.ibs.add_images(gpaths)
+    aids_list = app.ibs.detect_random_forest(gid_list, species=species)
+    aid_list = utool.flatten(aids_list)
+
+    qres_list = app.ibs.query_chips(aid_list, qreq_=None, verbose=False)
+
+
 def start_from_terminal():
     '''
     Parse command line options and start the server.
@@ -212,7 +235,10 @@ def start_from_terminal():
         type='str', default='testdb0')
 
     opts, args = parser.parse_args()
-    app.ibeis = ibeis.opendb(db=opts.db)
+
+    # ibs is the name of an instance of the controller, ibeis is the name of the module
+    app.ibs = ibeis.opendb(db=opts.db)
+     
     start_tornado(app, opts.port)
 
 
