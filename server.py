@@ -26,6 +26,7 @@ from os import mkdir, listdir
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
+DEFAULT_RESULTS_DIR = 'results'
 app = flask.Flask(__name__)
 global_args = {
     'NAVBAR': navbar.NavbarClass(),
@@ -90,6 +91,7 @@ def images():
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
 
+    # what about grevy's or plains?
     analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_PLAIN)
     #analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_GREVY)
     #analyze(car_number + car_color, person_letter, ibeis.constants.Species.GIRAFFE)
@@ -208,6 +210,22 @@ def analyze(car, person, species):
     elif species == ibeis.constants.Species.GIRAFFE:
         animal = 'giraffe' 
 
+    results_dir = DEFAULT_RESULTS_DIR
+    if not exists(results_dir):
+        mkdir(results_dir)
+    image_dir = join(results_dir, 'images')
+    if not exists(image_dir):
+        mkdir(image_dir)
+    car_dir = join(image_dir, car)
+    if not exists(car_dir):
+        mkdir(car_dir)
+    person_dir = join(car_dir, person)
+    if not exists(person_dir):
+        mkdir(person_dir) 
+    animal_dir = join(person_dir, animal)
+    if not exists(animal_dir):
+        mkdir(animal_dir)
+
     imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
 
     print('Analyzing images in %s...' % imdir)
@@ -215,9 +233,21 @@ def analyze(car, person, species):
     gpaths = [realpath(join(imdir, imname)) for imname in img_names]
     gid_list = app.ibs.add_images(gpaths)
     aids_list = app.ibs.detect_random_forest(gid_list, species=species)
-    aid_list = utool.flatten(aids_list)
+    qaid_list = utool.flatten(aids_list)
 
-    qres_list = app.ibs.query_chips(aid_list, qreq_=None, verbose=False)
+    daid_list = app.ibs.get_valid_aids(is_exemplar=True)
+    # qreq should be a property of the app - a persistent query request
+    qreq_ = app.ibs.new_query_request(qaid_list, daid_list)
+    qreq_.set_external_qaids(qaid_list)
+    qres_list = app.ibs.query_chips(qreq_=qreq_, verbose=False)
+    #qres_list = app.ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
+    
+    for qx, qres in enumerate(qres_list):
+        aid = qres.get_top_aids(num=1)
+        fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx))
+        print('saved to %s' % fpath)
+        name = app.ibs.get_annot_names(aid) 
+        print('Name %d: %s' % (qx, name))
 
 
 def start_from_terminal():
@@ -232,7 +262,7 @@ def start_from_terminal():
     parser.add_option(
         '--db',
         help='specify an IBEIS database',
-        type='str', default='testdb0')
+        type='str', default='testdb1')
 
     opts, args = parser.parse_args()
 
