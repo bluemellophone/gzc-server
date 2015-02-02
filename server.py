@@ -17,6 +17,7 @@ import utool as ut
 # Web Internal
 import serverfuncs, navbar  # NOQA
 # Others
+import cv2
 import zipfile
 from datetime import date
 from os.path import join, exists, realpath  # NOQA
@@ -245,9 +246,11 @@ def analyze(car, person, species):
     for qx, qres in enumerate(qres_list):
         aid = qres.get_top_aids(num=1)
         fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx))
-        print('saved to %s' % fpath)
+       
+        gid_list = app.ibs.get_annot_gids(aid) 
+        img = app.ibs.get_images(gid_list)[0]
         name = app.ibs.get_annot_names(aid) 
-        print('Name %d: %s' % (qx, name))
+        cv2.imwrite(join(animal_dir, '%s_%d.png' % (name, qx)), img)
 
 
 def start_from_terminal():
