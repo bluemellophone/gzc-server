@@ -22,6 +22,8 @@ import zipfile
 from datetime import date
 from os.path import join, exists, realpath  # NOQA
 from os import mkdir, listdir
+import subprocess as sp
+
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -129,35 +131,39 @@ def gps():
 @app.route('/render/<car>/<person>', methods=['POST'])
 def render_html(car, person):
     # Take HTML content, write to file (content.html), call wkhtmltopdf, save the pdf in data/pdfs/car/person/content.pdf
-    # Zach, I need help here   -Jason
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
+    try:
+        with open(join(data_dir,"/%s/%s/content.html" % (car, person)),'w') as html_file:
+            html_file.write(request.html_content)
+    except IOError as ioe:
+        return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
+    input_file_path = join(data_dir,"/%s/%s/content.html" % (car, person))
+    output_file_path = join(data_dir,"/%s/%s/content.pdf" % (car, person))
+    #TODO: Maybe redirect STDERR to something useful so we can read it if needed
+    wk_retcode = sp.call('wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path))
+    if wk_retcode != 0:
+        return response(code='2', message='[render_html] Failed to convert HTML to PDF')
     # This function needs to call wkhtmltopdf with the HTML content in the POST
     # variable 'html_content'.  The wkhtmltopdf code will take the html file
     # and render it to PDF.  Then, the file needs to be sent to a printer by some
     # Python module, see:
     #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
     # Return 0 for success, something for failed to write content.pdf
-    return response()
+    return response(code='0')
 
 
 @app.route('/print/<car>/<person>', methods=['POST'])
 def print_pdf(car, person):
     # Check for content.pdf in data/pdfs/car/person/, then print it
-    # Print
-    # Zach, I need help here   -Jason
+    # Print using lpr
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
-    # This function needs to call wkhtmltopdf with the HTML content in the POST
-    # variable 'html_content'.  The wkhtmltopdf code will take the html file
-    # and render it to PDF.  Then, the file needs to be sent to a printer by some
-    # Python module, see:
-    #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
     # Return 0 for success, <some_code> for failed to print, a different one for failed to find/read content.pdf
     return response()
 
@@ -180,6 +186,8 @@ def response(code=0, message='', **kwargs):
     '''
         CODES:
             0 - Sucess / Nominal
+            1 - Error / File error
+            2 - Error / wkhtmltopdf failure
     '''
     resp = {
         'status': {
