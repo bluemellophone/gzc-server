@@ -128,6 +128,7 @@ def gps():
 
 @app.route('/render/<car>/<person>', methods=['POST'])
 def render_html(car, person):
+    # Take HTML content, write to file (content.html), call wkhtmltopdf, save the pdf in data/pdfs/car/person/content.pdf
     # Zach, I need help here   -Jason
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
     if not exists(data_dir):
@@ -140,12 +141,14 @@ def render_html(car, person):
     # and render it to PDF.  Then, the file needs to be sent to a printer by some
     # Python module, see:
     #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
-
+    # Return 0 for success, something for failed to write content.pdf
     return response()
 
 
 @app.route('/print/<car>/<person>', methods=['POST'])
 def print_pdf(car, person):
+    # Check for content.pdf in data/pdfs/car/person/, then print it
+    # Print
     # Zach, I need help here   -Jason
     print("GET: ", request.args)
     print("POST:", request.form)
@@ -155,6 +158,7 @@ def print_pdf(car, person):
     # and render it to PDF.  Then, the file needs to be sent to a printer by some
     # Python module, see:
     #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
+    # Return 0 for success, <some_code> for failed to print, a different one for failed to find/read content.pdf
     return response()
 
 
