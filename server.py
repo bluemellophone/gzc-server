@@ -17,7 +17,6 @@ import utool as ut
 # Web Internal
 import serverfuncs, navbar  # NOQA
 # Others
-import cv2
 import zipfile
 from datetime import date
 from os.path import join, exists, realpath  # NOQA
@@ -68,7 +67,6 @@ def review(car, person):
 
 @app.route('/images/submit', methods=['POST'])
 def images():
-    # Hendrik, I need help here   -Jason
     print("GET:  ", request.args)
     print("POST: ", request.form)
     print("FILES:", request.files)
@@ -94,17 +92,11 @@ def images():
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
 
-    # what about grevy's or plains?
-    analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_PLAIN)
-    #analyze(car_number + car_color, person_letter, ibeis.constants.Species.ZEB_GREVY)
-    #analyze(car_number + car_color, person_letter, ibeis.constants.Species.GIRAFFE)
-
     return response()
 
 
 @app.route('/gps/submit', methods=['POST'])
 def gps():
-    # Hendrik, I need help here   -Jason
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
@@ -185,7 +177,6 @@ def template(template_name=None, **kwargs):
 def response(code=0, message='', **kwargs):
     '''
         CODES:
-<<<<<<< Updated upstream
             0 - Sucess / Nominal
             1 - Error / File error
             2 - Error / wkhtmltopdf failure
@@ -234,61 +225,6 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     # else:
     #     import threading
     #     threading.Thread(target=_start_tornado).start()
-
-
-def analyze(car, person, species):
-    if species == ibeis.constants.Species.ZEB_PLAIN or species == ibeis.constants.Species.ZEB_GREVY:
-        animal = 'zebra'
-    elif species == ibeis.constants.Species.GIRAFFE:
-        animal = 'giraffe'
-
-    data_dir = DEFAULT_DATA_DIR
-    if not exists(data_dir):
-        mkdir(data_dir)
-    analysis_dir = join(DEFAULT_DATA_DIR, 'analysis')
-    if not exists(analysis_dir):
-        mkdir(analysis_dir)
-    image_dir = join(analysis_dir, 'images')
-    if not exists(image_dir):
-        mkdir(image_dir)
-    car_dir = join(image_dir, car)
-    if not exists(car_dir):
-        mkdir(car_dir)
-    person_dir = join(car_dir, person)
-    if not exists(person_dir):
-        mkdir(person_dir)
-    animal_dir = join(person_dir, animal)
-    if not exists(animal_dir):
-        mkdir(animal_dir)
-
-    imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
-
-    print('Analyzing images in %s...' % imdir)
-    img_names = listdir(imdir)
-    gpaths = [realpath(join(imdir, imname)) for imname in img_names]
-    gid_list = app.ibs.add_images(gpaths)
-    aids_list = app.ibs.detect_random_forest(gid_list, species=species)
-    qaid_list = utool.flatten(aids_list)
-
-    daid_list = app.ibs.get_valid_aids(is_exemplar=True)
-    # qreq should be a property of the app - a persistent query request
-    qreq_ = app.ibs.new_query_request(qaid_list, daid_list)
-    qreq_.set_external_qaids(qaid_list)
-    qres_list = app.ibs.query_chips(qreq_=qreq_, verbose=False)
-    #qres_list = app.ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
-
-    for qx, qres in enumerate(qres_list):
-        aid = qres.get_top_aids(num=1)
-        #fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx), vert=False)
-       
-        gid_list = app.ibs.get_annot_gids(aid) 
-        img = app.ibs.get_images(gid_list)[0]
-        name = app.ibs.get_annot_names(aid)
-        cv2.imwrite(join(animal_dir, '%s_%d.png' % (name, qx)), img)
-        
-        information = {'name': name}
-        with open(join(animal_dir, 'image_%d_data.json' % qx), 'w') as ofile:
-          json.dump(information, ofile)
 
 
 def start_from_terminal():
