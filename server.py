@@ -185,6 +185,7 @@ def template(template_name=None, **kwargs):
 def response(code=0, message='', **kwargs):
     '''
         CODES:
+<<<<<<< Updated upstream
             0 - Sucess / Nominal
             1 - Error / File error
             2 - Error / wkhtmltopdf failure
@@ -241,10 +242,13 @@ def analyze(car, person, species):
     elif species == ibeis.constants.Species.GIRAFFE:
         animal = 'giraffe'
 
-    results_dir = DEFAULT_RESULTS_DIR
-    if not exists(results_dir):
-        mkdir(results_dir)
-    image_dir = join(results_dir, 'images')
+    data_dir = DEFAULT_DATA_DIR
+    if not exists(data_dir):
+        mkdir(data_dir)
+    analysis_dir = join(DEFAULT_DATA_DIR, 'analysis')
+    if not exists(analysis_dir):
+        mkdir(analysis_dir)
+    image_dir = join(analysis_dir, 'images')
     if not exists(image_dir):
         mkdir(image_dir)
     car_dir = join(image_dir, car)
@@ -275,12 +279,16 @@ def analyze(car, person, species):
 
     for qx, qres in enumerate(qres_list):
         aid = qres.get_top_aids(num=1)
-        # fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx))
-
-        gid_list = app.ibs.get_annot_gids(aid)
+        #fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx), vert=False)
+       
+        gid_list = app.ibs.get_annot_gids(aid) 
         img = app.ibs.get_images(gid_list)[0]
         name = app.ibs.get_annot_names(aid)
         cv2.imwrite(join(animal_dir, '%s_%d.png' % (name, qx)), img)
+        
+        information = {'name': name}
+        with open(join(animal_dir, 'image_%d_data.json' % qx), 'w') as ofile:
+          json.dump(information, ofile)
 
 
 def start_from_terminal():
