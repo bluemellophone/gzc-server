@@ -76,7 +76,7 @@ def images():
     car_color = request.form['car_color']
     image_archive = request.files['image_archive']
 
-    data_dir = DEFAULT_DATA_DIR # this should eventually be an option
+    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
     image_dir = join(data_dir, 'images')
@@ -87,7 +87,7 @@ def images():
         mkdir(car_dir)
     person_dir = join(car_dir, person_letter)
     if not exists(person_dir):
-        mkdir(person_dir)  
+        mkdir(person_dir)
 
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
@@ -111,7 +111,7 @@ def gps():
     car_color = request.form['car_color']
     gps_data = request.files['gps_data']
 
-    data_dir = DEFAULT_DATA_DIR # this should eventually be an option
+    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
     gps_dir = join(data_dir, 'gps')
@@ -126,8 +126,26 @@ def gps():
     return response()
 
 
-@app.route('/print', methods=['POST'])
-def print_html(car, person):
+@app.route('/render/<car>/<person>', methods=['POST'])
+def render_html(car, person):
+    # Zach, I need help here   -Jason
+    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
+    if not exists(data_dir):
+        mkdir(data_dir)
+    print("GET: ", request.args)
+    print("POST:", request.form)
+    print("FILES:", request.files)
+    # This function needs to call wkhtmltopdf with the HTML content in the POST
+    # variable 'html_content'.  The wkhtmltopdf code will take the html file
+    # and render it to PDF.  Then, the file needs to be sent to a printer by some
+    # Python module, see:
+    #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
+
+    return response()
+
+
+@app.route('/print/<car>/<person>', methods=['POST'])
+def print_pdf(car, person):
     # Zach, I need help here   -Jason
     print("GET: ", request.args)
     print("POST:", request.form)
@@ -209,7 +227,7 @@ def analyze(car, person, species):
     if species == ibeis.constants.Species.ZEB_PLAIN or species == ibeis.constants.Species.ZEB_GREVY:
         animal = 'zebra'
     elif species == ibeis.constants.Species.GIRAFFE:
-        animal = 'giraffe' 
+        animal = 'giraffe'
 
     results_dir = DEFAULT_RESULTS_DIR
     if not exists(results_dir):
@@ -222,7 +240,7 @@ def analyze(car, person, species):
         mkdir(car_dir)
     person_dir = join(car_dir, person)
     if not exists(person_dir):
-        mkdir(person_dir) 
+        mkdir(person_dir)
     animal_dir = join(person_dir, animal)
     if not exists(animal_dir):
         mkdir(animal_dir)
@@ -242,14 +260,14 @@ def analyze(car, person, species):
     qreq_.set_external_qaids(qaid_list)
     qres_list = app.ibs.query_chips(qreq_=qreq_, verbose=False)
     #qres_list = app.ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
-    
+
     for qx, qres in enumerate(qres_list):
         aid = qres.get_top_aids(num=1)
-        fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx))
-       
-        gid_list = app.ibs.get_annot_gids(aid) 
+        # fpath = qres.dump_top_match(app.ibs, fpath=join(animal_dir, '%d.jpg' % qx))
+
+        gid_list = app.ibs.get_annot_gids(aid)
         img = app.ibs.get_images(gid_list)[0]
-        name = app.ibs.get_annot_names(aid) 
+        name = app.ibs.get_annot_names(aid)
         cv2.imwrite(join(animal_dir, '%s_%d.png' % (name, qx)), img)
 
 
@@ -271,7 +289,7 @@ def start_from_terminal():
 
     # ibs is the name of an instance of the controller, ibeis is the name of the module
     app.ibs = ibeis.opendb(db=opts.db)
-     
+
     start_tornado(app, opts.port)
 
 

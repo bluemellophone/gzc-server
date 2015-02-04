@@ -115,3 +115,65 @@
   right:-4px;
   top:50%;
 }
+
+@media print 
+{
+  /* Duplicate this CSS for printable.css */
+  @page 
+  {
+      size: auto;   /* auto is the current printer page size */
+      margin: 0mm;  /* this affects the margin in the printer settings */
+  }
+
+  body *, header, footer
+  {
+    visibility: hidden !important;
+  }
+
+  .header, .header *, .footer, .footer *
+  {
+    height: 0px !important;
+    padding: 0px !important;
+    margin: 0px !important;
+  }
+
+  #content-left.col-md-6 
+  {
+    display: none !important;
+  }
+
+  .printarea, .printarea * 
+  {
+    visibility: visible !important;
+  }
+
+  .printarea
+  {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 0px !important;
+    width:100% !important;
+    height:inherit !important;
+    overflow: visible !important;
+    border: none !important;
+    float:none !important;
+  }
+
+  .printarea #content-container 
+  {
+    padding: 0px !important;
+    margin: 0px !important;
+  }
+
+  .printarea-document
+  {
+    padding-top: 0px !important;
+  }
+
+  #splitter, #splitter .col-md-6
+  {
+    padding: 0px !important;
+    margin: 0px !important;
+  }
+}

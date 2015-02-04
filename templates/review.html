@@ -1,6 +1,57 @@
 {% extends "layout.html" %}
 {% block content %}
-  
-  ### REVIEW INTERFACE HERE ###
+    <style type="text/css">
+        .container
+        {
+            width: 100%;
+        }
+    </style>
+
+    <div class="row" id="splitter">
+        <div class="col-md-6" id="content-left">
+            content
+        </div>
+
+        <div class="col-md-6" id="content-right">
+            <div class="printarea">
+                <div class="printarea-document">
+                    <div id="content-container" style="width:773px; height:1000px; margin-left:auto; margin-right:auto; margin-top:0px;">
+                        <div style="background-color:#fff; height:100%; widht:100%; padding:30px;">
+                            
+                            <div class="row" style="height:10%; overflow-y:hidden; border:1px #333 solid;">
+                                <div class="col-8 notice-cell">
+                                    <img src="{{ url_for('static', filename='images/favicon.ico') }}" style="height: 90px; margin: 0px 10px;"/>
+                                    
+                                    <div style="display:inline-block;">
+                                        <b>IBEIS</b><br/>
+                                        <div style="line-height: 13px; font-size: 11px;">
+                                            ADDRESS
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-4 notice-cell" style="text-align:right;">
+                                    <b style="color:#CF2929; font-size:18px;">PERSON</b>
+                                    <br/>
+                                    <i>DATE</i>
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="height:30%; overflow-y:hidden; border:1px #333 solid;"></div>
+                            
+                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
+
+                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
+
+                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
 
 {% endblock %}
