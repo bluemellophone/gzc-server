@@ -11,8 +11,10 @@ import ibeis
 import utool  # NOQA
 import utool as ut
 
-from os.path import join, exists, realpath, split  # NOQA
+from os.path import join, exists, realpath, split, basename, splitext  # NOQA
 from os import mkdir, listdir
+
+from shutil import copy
 
 
 DEFAULT_DATA_DIR = 'data'
@@ -20,11 +22,12 @@ DEFAULT_DATA_DIR = 'data'
 
 def analyze(ibs, path_to_file):
     # decompose the path to get the animal type, person letter, and car information
-    animal_path, _ = split(path_to_file)
+    animal_path, fname = split(path_to_file)
     person_path, animal = split(animal_path)
     car_path, person = split(person_path)
     _, car = split(car_path)
     if animal == 'zebra': 
+        # for we are only concerned with plains zebras
         species = ibeis.constants.Species.ZEB_PLAIN
     elif animal == 'giraffe':
         species = ibeis.constants.Species.GIRAFFE
@@ -49,13 +52,13 @@ def analyze(ibs, path_to_file):
     if not exists(animal_dir):
         mkdir(animal_dir)
 
-    imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
-
-    # pass the new image to IBEIS
-    print('Analyzing images in %s...' % imdir)
-    img_names = listdir(imdir)
-    gpaths = [realpath(join(imdir, imname)) for imname in img_names]
-    gid_list = ibs.add_images(gpaths)
+#    imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
+#
+#    # pass the new image to IBEIS
+#    print('Analyzing images in %s...' % imdir)
+#    img_names = listdir(imdir)
+#    gpaths = [realpath(join(imdir, imname)) for imname in img_names]
+    gid_list = ibs.add_images([path_to_file])
     aids_list = ibs.detect_random_forest(gid_list, species=species)
     qaid_list = utool.flatten(aids_list)
 
@@ -66,18 +69,23 @@ def analyze(ibs, path_to_file):
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=False)
     #qres_list = ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
 
+    fname_base, fname_ext = splitext(fname)
     for qx, qres in enumerate(qres_list):
         aid = qres.get_top_aids(num=1)
-        fpath = qres.dump_top_match(ibs, fpath=join(animal_dir, '%d.jpg' % qx), vert=False)
+        fpath = qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False)
        
         gid_list = ibs.get_annot_gids(aid) 
         img = ibs.get_images(gid_list)[0]
-        name = ibs.get_annot_names(aid)
-        cv2.imwrite(join(animal_dir, '%s_%d.png' % (name, qx)), img)
+        name = ibs.get_annot_names(aid)[0]
+
+        # write the image of the query result along with the original
+        cv2.imwrite(join(animal_dir, '%s_%d_match.png' % (fname_base, qx)), img)
+        copy(path_to_file, join(animal_dir, '%s_%d_animal.%s' % (fname_base, qx, fname_ext)))
         
-        information = {'name': name}
-        with open(join(animal_dir, 'image_%d_data.json' % qx), 'w') as ofile:
-          json.dump(information, ofile)
+        # get intesting information about the query animal 
+        information = {'result_name': name, 'original_filename': path_to_file}
+        with open(join(animal_dir, '%s_%d_data.json' % (fname_base, qx)), 'w') as ofile:
+            json.dump(information, ofile)
 
 
 if __name__ == '__main__':
@@ -96,5 +104,5 @@ if __name__ == '__main__':
     person_letter = 'A'
     ibs = ibeis.opendb(db=opts.db)
     analyze(ibs, 'data/images/1RED/A/zebra/image1.jpg')
-    #analyze(ibs, 'data/images/1RED/A/giraffe/image1.jpg')
+    analyze(ibs, 'data/images/1RED/A/giraffe/image1.jpg')
 

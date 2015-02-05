@@ -9,6 +9,9 @@ from watchdog.events import PatternMatchingEventHandler
 
 from multiprocessing import Pool
 
+from os import walk
+from os.path import join, split
+
 pool = None
 ibs = None
 
@@ -49,7 +52,24 @@ def done_processing(fname):
 
 
 def recover_state(data_dir, results_dir):
-    pass
+    # first get all files in the data directory
+    input_files = []
+    for root, dirnames, filenames in walk(path_to_watch):
+        for filename in filenames:
+            # only check for actual animal images
+            _, animal = split(root)
+            if animal == 'giraffe' or animal == 'zebra': 
+                input_files.append(join(root, filename))
+    print input_files
+    
+    # now get all files for which results have been generated
+    output_files = []
+    for root, dirnames, filenames in walk(results_dir):
+        for filename in filenames:
+            if '.json' in filename:
+                output_files.append(join(root, filename))
+    print output_files
+
 
  
 if __name__ == '__main__':
@@ -60,7 +80,7 @@ if __name__ == '__main__':
 
     # need to check if any files were written while the observer was offline
     recover_state(path_to_watch, results_dir)
-
+    exit(0)
     # create the file observer that will watch for new files
     observer = Observer()
     observer.schedule(MyHandler(), path=path_to_watch, recursive=True)
