@@ -7,13 +7,29 @@
 body *, header, footer
 {
 visibility: hidden !important;
+-webkit-print-color-adjust: exact;
+}
+
+.identification-container
+{
+color: #FFFFFF !important;
+-webkit-print-color-adjust: exact;
+}
+
+.header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6
+{
+padding: 0px !important;
+margin: 0px !important;
 }
 
 .header, .header *, .footer, .footer *
 {
 height: 0px !important;
-padding: 0px !important;
-margin: 0px !important;
+}
+
+.content
+{
+margin-top: 0px !important;
 }
 
 #content-left.col-md-6 
@@ -39,19 +55,7 @@ border: none !important;
 float:none !important;
 }
 
-.printarea #content-container 
-{
-padding: 0px !important;
-margin: 0px !important;
-}
-
 .printarea-document
 {
 padding-top: 0px !important;
-}
-
-#splitter, #splitter .col-md-6
-{
-padding: 0px !important;
-margin: 0px !important;
 }

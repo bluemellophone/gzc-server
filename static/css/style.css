@@ -1,4 +1,8 @@
 
+html,body {
+    height:100%;
+}
+
 .header
 {
   height: 40px;
@@ -116,6 +120,131 @@
   top:50%;
 }
 
+#splitter
+{
+  margin-bottom: 30px;
+}
+
+.analysis-container
+{
+  height:900px; 
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-right:15px;
+}
+
+.analysis
+{
+  /*background-color: red;*/
+  margin: 15px 0px; 
+  position: relative;
+  display: table;
+}
+
+.analysis-selected
+{
+  background-color: #EEEEEE;
+}
+
+#send-button
+{
+  width: 100%;
+  height: 80px;
+  vertical-align: middle;
+  line-height: 60px;
+  margin-top: 20px;
+  font-size: 30px;
+}
+
+#gps-map-canvas
+{ 
+  height: 100%; 
+  margin: 0; 
+  padding: 0;
+}
+
+.identification-container
+{
+  background-color: #5cb85c !important;
+  text-align: center; 
+  height: 80%; 
+  margin-top: 16px; 
+  padding: 13px; 
+  color: #FFFFFF !important;
+  font-size:22px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.result-image-original, .result-image-match
+{
+  text-align: center;
+  padding: 20px;
+  float: none;
+  display: table-cell;
+}
+
+.result-image-hover
+{
+  float: none;
+  display: table-cell;
+  text-align: center;
+  font-size: 50px;
+  vertical-align: middle;
+  line-height: 0px;
+}
+
+.candidate-image-original
+{
+  text-align: center;
+}
+
+.candidate-image-match
+{
+  text-align: center;
+}
+
+.result-image-correspondences
+{
+  position: absolute;
+  top: 0;
+  left: -100%;
+  background-color: #3071a9;
+  z-index: 9999;
+  height: 100%;
+  padding: 20px;
+  float: none;
+  display: table-cell;
+}
+
+.result-image-original img, .result-image-correspondences img, .result-image-match img
+{
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.candidate-image-original img, .candidate-image-match img
+{
+  height: 174px;
+  margin: 5px;
+}
+
+.candidate-information
+{
+  text-align: center;
+}
+
+/* Gogle Maps */
+a[href^="http://maps.google.com/maps"]{display:none !important}
+
+.gmnoprint a, .gmnoprint span, .gm-style-cc {
+    display:none;
+}
+.gmnoprint div {
+    background:none !important;
+}
+
+/* Printing */
 @media print 
 {
   /* Duplicate this CSS for printable.css */
@@ -128,13 +257,29 @@
   body *, header, footer
   {
     visibility: hidden !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .identification-container
+  {
+    color: #FFFFFF !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6
+  {
+    padding: 0px !important;
+    margin: 0px !important;
   }
 
   .header, .header *, .footer, .footer *
   {
     height: 0px !important;
-    padding: 0px !important;
-    margin: 0px !important;
+  }
+
+  .content
+  {
+    margin-top: 0px !important;
   }
 
   #content-left.col-md-6 
@@ -160,20 +305,8 @@
     float:none !important;
   }
 
-  .printarea #content-container 
-  {
-    padding: 0px !important;
-    margin: 0px !important;
-  }
-
   .printarea-document
   {
     padding-top: 0px !important;
-  }
-
-  #splitter, #splitter .col-md-6
-  {
-    padding: 0px !important;
-    margin: 0px !important;
   }
 }

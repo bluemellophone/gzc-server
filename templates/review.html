@@ -1,5 +1,75 @@
 {% extends "layout.html" %}
 {% block content %}
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
+    </script>
+
+    <script type="text/javascript">
+        var selected = new Array();
+        $( document ).ready( function() {
+            loadGPSMap();
+
+            $(".result-image-hover").mouseenter(function() {
+                result = $(this).attr("result");       
+                $(this).animate({ backgroundColor: "#CCC", }, 500);
+                $("#result-image-match-" + result).animate({ left: "0", }, 500);
+            });
+
+            $(".result-image-hover").mouseleave(function() {
+                result = $(this).attr("result");          
+                $(this).animate({ backgroundColor: "transparent", }, 500);
+                $("#result-image-match-" + result).animate({ left: "-100%", }, 500);
+            });
+        });
+
+        function removeFromArray(value, array)
+        {
+            var index = array.indexOf(value);
+            if (index > -1) {
+                array.splice(index, 1);
+            }
+        }
+
+        function updateCandidates()
+        {
+            for( var i = 0; i < 3; i++ )
+            {
+                if(i < selected.length)
+                {
+                    candidate = selected[i];
+                    $("#candidate-information-" + i).html(candidate);   
+                }
+                else
+                {
+                    $("#candidate-information-" + i).html('DATA');   
+                }
+            }
+        }
+
+        function toggleAnalysis(result)
+        {
+            if(selected.indexOf(result) > -1)
+            {
+                removeFromArray(result, selected)
+                $("#analysis-" + result).removeClass('analysis-selected');
+                $("#analysis-" + result + " div span.glyphicon").addClass('glyphicon-heart-empty');
+            }
+            else if(selected.length < 3)
+            {
+                selected.push(result);
+                $("#analysis-" + result).addClass('analysis-selected');
+                $("#analysis-" + result + " div span.glyphicon").removeClass('glyphicon-heart-empty');
+            }
+            else
+            {
+                $("#analysis-" + result + " div span.glyphicon").animate({ color: "#d9534f", }, 200).delay(200).animate({ color: "#333", }, 200);;
+            }
+            // console.log(selected);
+            updateCandidates();
+        }
+    </script>
+    
+
     <style type="text/css">
         .container
         {
@@ -8,43 +78,95 @@
     </style>
 
     <div class="row" id="splitter">
-        <div class="col-md-6" id="content-left">
-            content
+        <div class="col-md-6" id="content-left" style="padding-left: 50px;">
+            <div class="analysis-container">
+                {% for i in range(10) %}
+                    <div class="row analysis" id="analysis-{{ i }}" onclick="toggleAnalysis({{ i }});" result="{{ i }}">                  
+                        <div class="col-xs-10 col-sm-10 col-md-10 result-image-correspondences" id="result-image-match-{{ i }}">
+                            <img src="{{ url_for('static', filename='images/empty.jpg') }}" style="width: 100%;"/>
+                        </div>   
+                        <div class="col-xs-5 col-sm-5 col-md-5 result-image-original" id="result-image-original-{{ i }}">
+                            <img src="{{ url_for('static', filename='images/empty.jpg') }}" />
+                        </div>
+                        <div class="col-xs-5 col-sm-5 col-md-5 result-image-match" id="result-image-match-{{ i }}">
+                            <img src="{{ url_for('static', filename='images/empty.jpg') }}" />
+                        </div>
+                        <div class="col-xs-2 col-sm-2 col-md-2 result-image-hover" id="result-image-hover-{{ i }}" result="{{ i }}">
+                            <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
+<!--                        
+                            <br/>
+                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                            <br/>
+                            <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
+                            <br/>
+                            <span class="glyphicon glyphicon-barcode" aria-hidden="true"></span> 
+-->
+                        </div>   
+                    </div>
+                {% else %}
+                    There are no results to review
+                {% endfor %}
+            </div>
+            <div class="send-container">
+                <a onclick="loadGPSMap();" class="btn btn-xl btn-primary" id="send-button">PRINT</a>
+            </div>
         </div>
 
         <div class="col-md-6" id="content-right">
             <div class="printarea">
                 <div class="printarea-document">
-                    <div id="content-container" style="width:773px; height:1000px; margin-left:auto; margin-right:auto; margin-top:0px;">
-                        <div style="background-color:#fff; height:100%; widht:100%; padding:30px;">
+                    <div id="content-container" style="width:773px; height:1000px; margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;">
+                        <div style="background-color:#fff; height:100%; widht:100%; padding: 35px 50px;">
                             
-                            <div class="row" style="height:10%; overflow-y:hidden; border:1px #333 solid;">
-                                <div class="col-8 notice-cell">
+                            <div class="row" style="height:10%;">
+                                <div class="col-xs-8 col-sm-8 col-md-8 notice-cell">
                                     <img src="{{ url_for('static', filename='images/favicon.ico') }}" style="height: 90px; margin: 0px 10px;"/>
                                     
-                                    <div style="display:inline-block;">
+                                    <div style="display:inline-block; font-size:20px;">
                                         <b>IBEIS</b><br/>
                                         <div style="line-height: 13px; font-size: 11px;">
-                                            ADDRESS
+                                            ibeis.org
+                                            <br/>
+                                            DATE
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="col-4 notice-cell" style="text-align:right;">
-                                    <b style="color:#CF2929; font-size:18px;">PERSON</b>
-                                    <br/>
-                                    <i>DATE</i>
+                                <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
+                                    <div class="identification-container">
+                                        2 green d
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="row" style="height:30%; overflow-y:hidden; border:1px #333 solid;"></div>
-                            
-                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
+                            <div class="row" style="height:27%; margin: 0px;">
+                                <div id="gps-map-canvas"></div>
+                            </div>
 
-                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
+                            <div class="row" style="height:2%; margin-top:1%;">
+                                <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                    Your Image
+                                </div>
+                                <div class="col-xs-4 col-sm-4 col-md-4 candidate-information" id="candidate-information-{{ i }}">
+                                </div>
+                                <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                    Matched Image
+                                </div>
+                            </div>
 
-                            <div class="row" style="height:20%; overflow-y: hidden; border:1px #333 solid;"></div>
-
+                            {% for i in range(3) %}
+                                <div class="row" style="height:20%;">
+                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                        <img src="{{ url_for('static', filename='images/empty.jpg') }}" />
+                                    </div>
+                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-information" id="candidate-information-{{ i }}">
+                                        DATA
+                                    </div>
+                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                        <img src="{{ url_for('static', filename='images/empty.jpg') }}"/>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
