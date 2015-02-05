@@ -4,10 +4,17 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
     </script>
 
+{{ url_for('static', filename='track.json') }}
+
     <script type="text/javascript">
         var selected = new Array();
+        var gps;
         $( document ).ready( function() {
-            loadGPSMap();
+            
+            $.getJSON("{{ url_for('static', filename='track.json') }}", function( data ) {
+                gps = data
+                renderMap();
+            });
 
             $(".result-image-hover").mouseenter(function() {
                 result = $(this).attr("result");       
@@ -21,6 +28,19 @@
                 $("#result-image-match-" + result).animate({ left: "-100%", }, 500);
             });
         });
+
+        function renderMap()
+        {
+            var track = new Array();
+            var markers = new Array();
+            var center = new google.maps.LatLng(-1.369, 36.860);
+
+            $.each( gps.track, function( key, marker ) {
+                track.push([marker.lat, marker.lon]);
+            });
+
+            loadGPSMap(track, markers, center);
+        }
 
         function removeFromArray(value, array)
         {
