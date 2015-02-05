@@ -85,8 +85,7 @@ function submitPDF(nonce)
 
 function loadGPSMap(track, markers, center)
 {
-    var center = new google.maps.LatLng(-1.364107, 36.850548);
-
+    var gps;
     var styles = [
         {
             featureType: "poi.business",
@@ -112,25 +111,31 @@ function loadGPSMap(track, markers, center)
         styles: styles,
     });
 
-    // Place a marker
-    new google.maps.Marker({
-        position: center,
-        map: map
-    });
-    
-    var track = new Array();
-    for (var i = 0; i < 20; i++) {
-        lat = -1.3817505 + Math.random() * 0.06 - 0.03;
-        lon = 36.8236284 + Math.random() * 0.06 - 0.03;
-        track[i] = new google.maps.LatLng(lat, lon);
+    var track_path = new Array();
+    for (var index in track)
+    {
+        marker = track[index];
+        gps = new google.maps.LatLng(marker[0], marker[1]);
+        track_path.push(gps);
     }
 
     new google.maps.Polyline({
-        path: track,
+        path: track_path,
         strokeColor: "#428BCA",
         strokeOpacity: 1.0,
         strokeWeight: 2,
         map: map
     });
 
+    for (var index in markers)
+    {
+        marker = markers[index];
+        console.log(marker);
+        gps = new google.maps.LatLng(marker[0], marker[1]);
+        console.log(gps);
+        new google.maps.Marker({
+            position: gps,
+            map: map
+        });
+    }
 }
