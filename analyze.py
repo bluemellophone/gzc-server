@@ -11,19 +11,25 @@ import ibeis
 import utool  # NOQA
 import utool as ut
 
-from os.path import join, exists, realpath  # NOQA
+from os.path import join, exists, realpath, split  # NOQA
 from os import mkdir, listdir
 
 
 DEFAULT_DATA_DIR = 'data'
 
 
-def analyze(ibs, car, person, species):
-    if species == ibeis.constants.Species.ZEB_PLAIN or species == ibeis.constants.Species.ZEB_GREVY:
-        animal = 'zebra'
-    elif species == ibeis.constants.Species.GIRAFFE:
-        animal = 'giraffe'
+def analyze(ibs, path_to_file):
+    # decompose the path to get the animal type, person letter, and car information
+    animal_path, _ = split(path_to_file)
+    person_path, animal = split(animal_path)
+    car_path, person = split(person_path)
+    _, car = split(car_path)
+    if animal == 'zebra': 
+        species = ibeis.constants.Species.ZEB_PLAIN
+    elif animal == 'giraffe':
+        species = ibeis.constants.Species.GIRAFFE
 
+    # create the results directory for the given car/person/animal
     data_dir = DEFAULT_DATA_DIR
     if not exists(data_dir):
         mkdir(data_dir)
@@ -45,6 +51,7 @@ def analyze(ibs, car, person, species):
 
     imdir = join(DEFAULT_DATA_DIR, 'images', car, person, animal)
 
+    # pass the new image to IBEIS
     print('Analyzing images in %s...' % imdir)
     img_names = listdir(imdir)
     gpaths = [realpath(join(imdir, imname)) for imname in img_names]
@@ -73,13 +80,6 @@ def analyze(ibs, car, person, species):
           json.dump(information, ofile)
 
 
-def process(ibs, car, person_letter):
-    # what about grevy's or plains?
-    analyze(ibs, car, person_letter, ibeis.constants.Species.ZEB_PLAIN)
-    #analyze(ibs, car, person_letter, ibeis.constants.Species.ZEB_GREVY)
-    #analyze(ibs, car, person_letter, ibeis.constants.Species.GIRAFFE)
-
-
 if __name__ == '__main__':
     '''
     Parse command line options and start the server.
@@ -95,5 +95,6 @@ if __name__ == '__main__':
     car = '1RED'
     person_letter = 'A'
     ibs = ibeis.opendb(db=opts.db)
-    process(ibs, car, person_letter)
+    analyze(ibs, 'data/images/1RED/A/zebra/image1.jpg')
+    #analyze(ibs, 'data/images/1RED/A/giraffe/image1.jpg')
 
