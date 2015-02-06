@@ -50,6 +50,8 @@ def analyze(ibs, path_to_file):
         species = ibeis.constants.Species.ZEB_PLAIN
     elif animal == 'giraffe':
         species = ibeis.constants.Species.GIRAFFE
+    else:
+        return  # this is some other image, e.g., the timestamp clock
 
     print('received request for car %s, person %s, to analyze file %s which contains an animal of type %s' % (car, person, path_to_file, animal))
 
@@ -57,23 +59,30 @@ def analyze(ibs, path_to_file):
     data_dir = DEFAULT_DATA_DIR
     if not exists(data_dir):
         mkdir(data_dir)
+        print('creating directory %s' % (data_dir))
     analysis_dir = join(DEFAULT_DATA_DIR, 'analysis')
     if not exists(analysis_dir):
         mkdir(analysis_dir)
+        print('creating directory %s' % (analysis_dir))
     image_dir = join(analysis_dir, 'images')
     if not exists(image_dir):
         mkdir(image_dir)
+        print('creating directory %s' % (image_dir))
     car_dir = join(image_dir, car)
     if not exists(car_dir):
         mkdir(car_dir)
+        print('creating directory %s' % (car_dir))
     person_dir = join(car_dir, person)
     if not exists(person_dir):
         mkdir(person_dir)
+        print('creating directory %s' % (person_dir))
     animal_dir = join(person_dir, animal)
     if not exists(animal_dir):
         mkdir(animal_dir)
+        print('creating directory %s' % (animal_dir))
 
     gid_list = ibs.add_images([path_to_file])
+    print('starting detection for image %s and species %s' % (path_to_file, species))
     aids_list = ibs.detect_random_forest(gid_list, species=species)
     qaid_list = utool.flatten(aids_list)
 
