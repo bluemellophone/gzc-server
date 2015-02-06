@@ -69,11 +69,7 @@ def analyze(ibs, path_to_file):
     if not exists(analysis_dir):
         mkdir(analysis_dir)
         print('creating directory %s' % (analysis_dir))
-    image_dir = join(analysis_dir, 'images')
-    if not exists(image_dir):
-        mkdir(image_dir)
-        print('creating directory %s' % (image_dir))
-    car_dir = join(image_dir, car)
+    car_dir = join(analysis_dir, car)
     if not exists(car_dir):
         mkdir(car_dir)
         print('creating directory %s' % (car_dir))
@@ -160,6 +156,6 @@ if __name__ == '__main__':
     car = '1RED'
     person_letter = 'A'
     ibs = ibeis.opendb(db=opts.db)
-    analyze(ibs, realpath('data/images/1RED/A/zebra/image1.jpg'))
-    analyze(ibs, realpath('data/images/1RED/A/giraffe/image1.jpg'))
+    analyze(ibs, realpath('data/1red/a/zebra/image1.jpg'))
+    analyze(ibs, realpath('data/1red/a/giraffe/image1.jpg'))
 

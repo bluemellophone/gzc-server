@@ -82,7 +82,7 @@ def recover_state(pool, data_dir, results_dir):
     
     # remember to remove leading backslash so that os.path.join works correctly
     input_files_cleaned = [text.replace(data_dir, '')[1:] for text in input_files]
-    
+
     # for all the input files, check if the corresponding json file exists
     for filepath_clean, filepath_full in zip(input_files_cleaned, input_files):
         path, ext = splitext(filepath_clean)
@@ -97,12 +97,11 @@ def recover_state(pool, data_dir, results_dir):
         # if the either the json file does't exist or no match file is found, re-analyze this file
         if not isfile(file_to_check_json) or not True in files_to_check_match_existence:
             print 'the file %s has to be analyzed' % (realpath(filepath_full))
-            print ibs
             r = pool.apply_async(process_image, args=[realpath(filepath_full)], callback=done_processing)
 
 
 if __name__ == '__main__':
-    results_dir = 'data/analysis/images'
+    results_dir = 'data/analysis'
     path_to_watch = 'data/images'
 
     # need to check that the directory we are watching actually exists
