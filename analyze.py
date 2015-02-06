@@ -156,6 +156,6 @@ if __name__ == '__main__':
     car = '1RED'
     person_letter = 'A'
     ibs = ibeis.opendb(db=opts.db)
-    analyze(ibs, realpath('data/1red/a/zebra/image1.jpg'))
-    analyze(ibs, realpath('data/1red/a/giraffe/image1.jpg'))
+    analyze(ibs, realpath('data/images/1red/a/zebra/image1.jpg'))
+    analyze(ibs, realpath('data/images/1red/a/giraffe/image1.jpg'))
 
