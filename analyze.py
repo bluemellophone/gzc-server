@@ -14,7 +14,7 @@ import numpy as np
 
 from vtool import geometry
 
-from os.path import join, exists, realpath, split, basename, splitext  # NOQA
+from os.path import join, exists, isfile, realpath, split, basename, splitext  # NOQA
 from os import mkdir, listdir
 
 from shutil import copy
@@ -76,10 +76,10 @@ def analyze(ibs, path_to_file):
     gid_list = ibs.add_images([path_to_file])
     aids_list = ibs.detect_random_forest(gid_list, species=species)
     qaid_list = utool.flatten(aids_list)
-    detection_bbox_list = ibs.get_annot_verts(qaid_list)
 
     # so that we can draw a new bounding box for each detection
     img_orig = cv2.imread(path_to_file)
+    detection_bbox_list = ibs.get_annot_verts(qaid_list)
 
     daid_list = ibs.get_valid_aids(is_exemplar=True)
     # qreq should be a property of the - a persistent query request
@@ -91,8 +91,7 @@ def analyze(ibs, path_to_file):
     fname_base, fname_ext = splitext(fname)
     for (qx, qres), bbox in zip(enumerate(qres_list), detection_bbox_list):
         aid = qres.get_top_aids(num=1)
-        score = qres.aid2_score
-        fpath = qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False)
+        fpath = qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False)
        
         gid_list = ibs.get_annot_gids(aid) 
         img_match = ibs.get_images(gid_list)[0]
@@ -107,12 +106,29 @@ def analyze(ibs, path_to_file):
         # draw the bounding box on the detection in the original image 
         img_orig_bbox = geometry.draw_verts(img_orig, bbox)
         img_orig_bbox = resize_img_by_smaller_dimension(img_orig_bbox, 512)
-        cv2.imwrite(join(animal_dir, '%s_%d_animal.jpg' % (fname_base, qx)), img_orig_bbox)
+        cv2.imwrite(join(animal_dir, '%s_%d_original.jpg' % (fname_base, qx)), img_orig_bbox)
 
         # get intesting information about the query animal 
         information = {'result_name': name, 'original_filename': path_to_file}
         with open(join(animal_dir, '%s_%d_data.json' % (fname_base, qx)), 'w') as ofile:
             json.dump(information, ofile)
+
+        # write the detection confidence(s) for this image to the json file
+        score = ibs.get_annot_detect_confidence(aid)[0]
+        confidence = {'%s_%d' % (fname_base, qx): score}
+
+        confidences_file = join(animal_dir, 'confidences.json')
+        # check if this is the first detection for this person
+        if not isfile(confidences_file):
+            with open(confidences_file, 'w') as ofile:
+                 json.dump(confidence, ofile)
+        # update the existing json file
+        else:
+            with open(confidences_file, 'r') as ifile:
+                data = json.load(ifile)
+            data.update(confidence)
+            with open(confidences_file, 'w') as ofile:
+                json.dump(data, ofile)
 
 
 if __name__ == '__main__':
