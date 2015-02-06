@@ -193,8 +193,14 @@
                                     </div>
 
                                     <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
+                                        <div style="text-transform:uppercase;">
+                                            
+                                        </div>
                                         <div class="identification-container checkered identification-color-{{ car_color }}">
-                                            {{ car_number }} {{ car_color }} - {{ person }}
+                                            {% autoescape false %}
+                                                {{ car_number }}
+                                            {% endautoescape %}
+                                            {{ car_color }} {{ person }}
                                         </div>
                                     </div>
                                 </div>
