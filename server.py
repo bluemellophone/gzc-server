@@ -58,9 +58,9 @@ def gps_form():
 def review(car, person):
     # Jason will work on this function
     try:
-        car_color, car_number = re.findall(r"[^\W\d_]+|\d+", car.lower())
+        car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car.lower())
     except:
-        car_color, car_number = car, ""
+        car_number, car_color = "∞", car
     print("CAR:", car, car_color, car_number)
     print("PARSON:", person)
     return template('review', car_color=car_color, car_number=car_number, person=person)
