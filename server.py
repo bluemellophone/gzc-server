@@ -71,9 +71,9 @@ def images():
     print("POST: ", request.form)
     print("FILES:", request.files)
 
-    person_letter = request.form['person_letter']
+    person_letter = request.form['person_letter'].lower()
     car_number = request.form['car_number']
-    car_color = request.form['car_color']
+    car_color = request.form['car_color'].lower()
     image_archive = request.files['image_archive']
 
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
