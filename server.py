@@ -19,6 +19,8 @@ from datetime import date
 from os.path import join, exists, realpath  # NOQA
 from os import mkdir, listdir  # NOQA
 
+import utool as ut
+
 
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
