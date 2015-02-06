@@ -39,7 +39,7 @@ def resize_img_by_smaller_dimension(img_in, new_size):
     return img_out
 
 
-def analyze(ibs, path_to_file):
+def analyze(ibs, qreq_, path_to_file):
     # decompose the path to get the animal type, person letter, and car information
     animal_path, fname = split(path_to_file)
     person_path, animal = split(animal_path)
@@ -93,7 +93,7 @@ def analyze(ibs, path_to_file):
 
     daid_list = ibs.get_valid_aids(is_exemplar=True)
     # qreq should be a property of the - a persistent query request
-    qreq_ = ibs.new_query_request(qaid_list, daid_list)
+    #qreq_ = ibs.new_query_request(qaid_list, daid_list)
     qreq_.set_external_qaids(qaid_list)
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=False)
     #qres_list = ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
@@ -156,6 +156,9 @@ if __name__ == '__main__':
     car = '1RED'
     person_letter = 'A'
     ibs = ibeis.opendb(db=opts.db)
-    analyze(ibs, realpath('data/images/1red/a/zebra/image1.jpg'))
-    analyze(ibs, realpath('data/images/1red/a/giraffe/image1.jpg'))
+    daid_list = ibs.get_valid_aids(is_exemplar=True)
+    qreq = ibs.new_query_request([], daid_list)
+
+    analyze(ibs, qreq, realpath('data/images/1red/a/zebra/image1.jpg'))
+    analyze(ibs, qreq, realpath('data/images/1red/a/giraffe/image1.jpg'))
 

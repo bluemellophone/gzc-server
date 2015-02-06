@@ -20,6 +20,8 @@ from utool import IMG_EXTENSIONS
 
 # ibs needs to be global so it may be shared among processes
 ibs = ibeis.opendb('testdb1')
+daid_list = ibs.get_valid_aids(is_exemplar=True)
+qreq = ibs.new_query_request([], daid_list)
 
 
 # need to write our own non-daemonic Pool so that pyrf may create its own processes
@@ -65,7 +67,7 @@ class NewImageHandler(PatternMatchingEventHandler):
 def process_image(fname):
     print('received request: %s' % (fname))
 #    time.sleep(3) # fake processing the request
-    analyze.analyze(ibs, fname)
+    analyze.analyze(ibs, qreq, fname)
     return fname
 
 
