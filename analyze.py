@@ -45,6 +45,11 @@ def analyze(ibs, path_to_file):
     person_path, animal = split(animal_path)
     car_path, person = split(person_path)
     _, car = split(car_path)
+
+    car = car.lower()
+    person = person.lower()
+    animal = animal.lower()
+
     if animal == 'zebra': 
         # for we are only concerned with plains zebras
         species = ibeis.constants.Species.ZEB_PLAIN

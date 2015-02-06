@@ -10,10 +10,6 @@ import optparse
 import logging
 import socket
 import simplejson as json
-# IBEIS
-import ibeis
-import utool  # NOQA
-import utool as ut
 # Web Internal
 import re
 import serverfuncs, navbar  # NOQA
@@ -22,13 +18,13 @@ import zipfile
 from datetime import date
 from os.path import join, exists, realpath  # NOQA
 from os import mkdir, listdir  # NOQA
-import subprocess as sp
+
+import utool as ut
 
 
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
-DEFAULT_RESULTS_DIR = 'results'
 app = flask.Flask(__name__)
 global_args = {
     'NAVBAR': navbar.NavbarClass(),
@@ -75,9 +71,9 @@ def images():
     print("POST: ", request.form)
     print("FILES:", request.files)
 
-    person_letter = request.form['person_letter']
+    person_letter = request.form['person_letter'].lower()
     car_number = request.form['car_number']
-    car_color = request.form['car_color']
+    car_color = request.form['car_color'].lower()
     image_archive = request.files['image_archive']
 
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
@@ -240,15 +236,8 @@ def start_from_terminal():
         '-p', '--port',
         help='which port to serve content on',
         type='int', default=DEFAULT_PORT)
-    parser.add_option(
-        '--db',
-        help='specify an IBEIS database',
-        type='str', default='testdb1')
-
+    
     opts, args = parser.parse_args()
-
-    # ibs is the name of an instance of the controller, ibeis is the name of the module
-    app.ibs = ibeis.opendb(db=opts.db)
 
     start_tornado(app, opts.port)
 
