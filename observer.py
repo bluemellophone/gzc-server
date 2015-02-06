@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import time
 import ibeis
 import analyze
@@ -14,6 +16,7 @@ from os import walk, mkdir
 from os.path import join, split, splitext, isfile, exists, realpath
 
 from utool import IMG_EXTENSIONS
+
 
 # ibs needs to be global so it may be shared among processes
 ibs = ibeis.opendb('testdb1')
@@ -50,24 +53,24 @@ class NewImageHandler(PatternMatchingEventHandler):
         # need to sleep to give the OS time to finish writing the file
         time.sleep(1)
         r = pool.apply_async(process_image, args=[event.src_path], callback=done_processing)
-        print event.src_path, event.event_type
+        print('file: %s, event: %s' % (event.src_path, event.event_type))
 
-    def on_modified(self, event):
-        self.process(event)
+#    def on_modified(self, event):
+#        self.process(event)
 
     def on_created(self, event):
         self.process(event)
 
 
 def process_image(fname):
-    print 'received request: %s' % (fname)
+    print('received request: %s' % (fname))
 #    time.sleep(3) # fake processing the request
     analyze.analyze(ibs, fname)
     return fname
 
 
 def done_processing(fname):
-    print 'request completed: %s' % (fname)
+    print('request completed: %s' % (fname))
 
 
 def recover_state(pool, data_dir, results_dir):
@@ -96,7 +99,7 @@ def recover_state(pool, data_dir, results_dir):
 
         # if the either the json file does't exist or no match file is found, re-analyze this file
         if not isfile(file_to_check_json) or not True in files_to_check_match_existence:
-            print 'the file %s has to be analyzed' % (realpath(filepath_full))
+            print('the file %s has to be analyzed' % (realpath(filepath_full)))
             r = pool.apply_async(process_image, args=[realpath(filepath_full)], callback=done_processing)
 
 
@@ -125,8 +128,9 @@ if __name__ == '__main__':
     try:
         while True:
             time.sleep(1)
-            print 'listening...'
+            print('listening...')
     except KeyboardInterrupt:
+        print('observer shutting down!')
         observer.stop()
 
     observer.join()
