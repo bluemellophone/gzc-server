@@ -12,6 +12,7 @@ import socket
 import simplejson as json
 # Web Internal
 import re
+import subprocess as sp
 import serverfuncs, navbar  # NOQA
 # Others
 import zipfile
@@ -56,7 +57,7 @@ def review(car, person):
     try:
         car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car.lower())
     except:
-        car_number, car_color = "∞", car
+        car_number, car_color = "&infin;", car
     print("CAR:", car, car_color, car_number)
     print("PARSON:", person)
     return template('review', car_color=car_color, car_number=car_number, person=person)
@@ -236,7 +237,7 @@ def start_from_terminal():
         '-p', '--port',
         help='which port to serve content on',
         type='int', default=DEFAULT_PORT)
-    
+
     opts, args = parser.parse_args()
 
     start_tornado(app, opts.port)
