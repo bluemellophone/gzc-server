@@ -15,14 +15,14 @@ import ibeis
 import utool  # NOQA
 import utool as ut
 # Web Internal
+import re
 import serverfuncs, navbar  # NOQA
 # Others
 import zipfile
 from datetime import date
 from os.path import join, exists, realpath  # NOQA
-from os import mkdir, listdir
+from os import mkdir, listdir  # NOQA
 import subprocess as sp
-
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -57,9 +57,13 @@ def gps_form():
 @app.route('/review/<car>/<person>')
 def review(car, person):
     # Jason will work on this function
-    print("CAR:", car)
+    try:
+        car_color, car_number = re.findall(r"[^\W\d_]+|\d+", car.lower())
+    except:
+        car_color, car_number = car, ""
+    print("CAR:", car, car_color, car_number)
     print("PARSON:", person)
-    return template('review')
+    return template('review', car_color=car_color, car_number=car_number, person=person)
 
 
 ################################################################################
@@ -130,12 +134,12 @@ def render_html(car, person):
     print("POST:", request.form)
     print("FILES:", request.files)
     try:
-        with open(join(data_dir,"/%s/%s/content.html" % (car, person)),'w') as html_file:
+        with open(join(data_dir, "/%s/%s/content.html" % (car, person)), 'w') as html_file:
             html_file.write(request.html_content)
     except IOError as ioe:
         return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
-    input_file_path = join(data_dir,"/%s/%s/content.html" % (car, person))
-    output_file_path = join(data_dir,"/%s/%s/content.pdf" % (car, person))
+    input_file_path = join(data_dir, "/%s/%s/content.html" % (car, person))
+    output_file_path = join(data_dir, "/%s/%s/content.pdf" % (car, person))
     #TODO: Maybe redirect STDERR to something useful so we can read it if needed
     wk_retcode = sp.call('wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path))
     if wk_retcode != 0:

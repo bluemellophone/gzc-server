@@ -10,6 +10,28 @@ function submit_cookie(name, value) {
   });
 }
 
+String.prototype.format = function() {
+  var str = this;
+  for (var i = 0; i < arguments.length; i++) {       
+    var reg = new RegExp("\\{" + i + "\\}", "gm");             
+    str = str.replace(reg, arguments[i]);
+  }
+  return str;
+}
+
+function undef(value, def)
+{
+    return ( typeof value !== 'undefined' ? value : def );
+}
+
+function removeFromArray(value, array)
+{
+    var index = array.indexOf(value);
+    if (index > -1) {
+        array.splice(index, 1);
+    }
+}
+
 function submitPDF(nonce)
 {
     var documents = {};
@@ -130,10 +152,15 @@ function loadGPSMap(track, markers, center)
     for (var index in markers)
     {
         marker = markers[index];
-        console.log(marker);
         gps = new google.maps.LatLng(marker[0], marker[1]);
-        console.log(gps);
+        number = parseInt(index) + 1;
         new google.maps.Marker({
+            icon: {
+                // url: 'http://mt.google.com/vt/icon/name=icons/spotlight/spotlight-waypoint-a.png&color=ff004C13&psize=25&ay=50&text=•'
+                // url: 'http://mt.google.com/vt/icon/name=icons/spotlight/spotlight-waypoint-b.png&color=ff004C13&psize=16&ay=48&text=A'
+                url: 'http://mt.google.com/vt/icon/name=icons/spotlight/spotlight-waypoint-b.png&color=ff004C13&psize=16&ay=48&text=' + number
+                // url: 'http://mt.google.com/vt/icon/name=icons/spotlight/spotlight-waypoint-blue.png'
+            },
             position: gps,
             map: map
         });

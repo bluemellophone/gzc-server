@@ -41,90 +41,6 @@ html,body {
   display: block;
 }
 
-.ui-widget-content
-{
-  background: transparent;
-}
-
-.ui-rotatable-handle
-{
-  position: absolute;
-  left: 50%;
-  top: 10px;
-  margin-left: -3px;
-}
-
-.ui-icon, .ui-widget-content .ui-icon
-{
-  background-image: none;
-}
-
-.ui-rotatable-handle {
-  height: 10px;
-  width: 10px;
-  border-radius: 5px;
-  cursor: 'grab';
-  background-image: none;
-  left: 50%;
-  margin-left: -1px; 
-  top: 10px;
-  background-color: rgb(127,255,127);
-  border: 1px solid #000000;
-}
-.ui-resizable-handle 
-{
-  width: 8px;
-  height: 8px;
-  background-color: #ffffff;
-  border: 1px solid #000000;
-  border-radius: 4px;
-}
-.ui-resizable-nw 
-{
-  left: -4px;
-  top: -4px;
-}
-.ui-resizable-ne 
-{
-  top: -4px;
-  right: -4px;
-}
-.ui-resizable-sw 
-{
-  bottom: -4px;
-  left: -4px;
-}
-.ui-resizable-se 
-{
-  bottom: -4px;
-  right:-4px;
-}
-.ui-resizable-n
-{
-  top: -4px;
-  left:50%;
-}
-.ui-resizable-s 
-{
-  bottom: -4px;
-  left: 50%;
-}
-.ui-resizable-w 
-{
-  left:-4px;
-  top:50%;
-}
-.ui-resizable-e 
-{
-  right:-4px;
-  top:50%;
-}
-
-#splitter
-{
-  margin-bottom: 30px;
-}
-
 .analysis-container
 {
   height:900px; 
@@ -146,6 +62,90 @@ html,body {
   background-color: #EEEEEE;
 }
 
+.analysis-image-original, .analysis-image-match
+{
+  text-align: center;
+  padding: 20px;
+  float: none;
+  display: table-cell;
+}
+
+.analysis-image-hover
+{
+  float: none;
+  display: table-cell;
+  text-align: center;
+  font-size: 50px;
+  vertical-align: middle;
+  line-height: 0px;
+}
+
+.analysis-image-correspondences
+{
+  position: absolute;
+  top: 0;
+  left: -100%;
+  /*left: 0;*/
+  text-align: center;
+  background-color: #3071a9;
+  z-index: 9999;
+  height: 100%;
+  padding: 20px;
+  vertical-align: middle;
+  display: table-cell;
+  float: none;
+}
+
+.analysis-image-correspondences img, .analysis-image-original img, .analysis-image-match img
+{
+  max-height: 100%;
+  max-width: 100%;
+  -moz-box-shadow: 1px 1px 8px gray;
+  -webkit-box-shadow: 1px 1px 8px gray;
+  box-shadow: 1px 1px 8px gray;
+}
+
+.analysis-image-correspondences img
+{
+  height: 100%;
+}
+
+.candidate 
+{
+  display: table;
+}
+
+.candidate-image-original, .candidate-image-match
+{
+  text-align: center;
+  vertical-align: middle;
+  display: table-cell;
+  float: none;
+}
+
+.candidate-image-original img, .candidate-image-match img
+{
+  max-width: 100%;
+  height: auto;
+  max-height: 175px;
+  margin: 5px;
+  -moz-box-shadow: 1px 1px 8px gray;
+  -webkit-box-shadow: 1px 1px 8px gray;
+  box-shadow: 1px 1px 8px gray;
+}
+
+.candidate-information
+{
+  text-align: center;
+  display: table-cell;
+  float: none;
+}
+
+#splitter
+{
+  margin-bottom: 30px;
+}
+
 #send-button
 {
   width: 100%;
@@ -163,12 +163,43 @@ html,body {
   padding: 0;
 }
 
+.checkered  {
+  background-color: red !important;
+  -webkit-background-size: 50px 50px !important;
+  -moz-background-size: 50px 50px !important;
+  background-size: 20px 20px !important; /* Controls the size of the stripes */
+
+  background-image: -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, #555), color-stop(.25, transparent), to(transparent)),
+            -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, #555), color-stop(.25, transparent), to(transparent)),
+            -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, #555)),
+              -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, #555)) !important;
+  background-image: -webkit-linear-gradient(45deg, #555 25%, transparent 25%, transparent),
+            -webkit-linear-gradient(-45deg, #555 25%, transparent 25%, transparent),
+            -webkit-linear-gradient(45deg, transparent 75%, #555 75%),
+              -webkit-linear-gradient(-45deg, transparent 75%, #555 75%) !important;
+  background-image: -moz-linear-gradient(45deg, #555 25%, transparent 25%, transparent),
+            -moz-linear-gradient(-45deg, #555 25%, transparent 25%, transparent),
+            -moz-linear-gradient(45deg, transparent 75%, #555 75%),
+              -moz-linear-gradient(-45deg, transparent 75%, #555 75%) !important;
+  background-image: -ms-linear-gradient(45deg, #555 25%, transparent 25%, transparent),
+            -ms-linear-gradient(-45deg, #555 25%, transparent 25%, transparent),
+            -ms-linear-gradient(45deg, transparent 75%, #555 75%),
+              -ms-linear-gradient(-45deg, transparent 75%, #555 75%) !important;
+  background-image: -o-linear-gradient(45deg, #555 25%, transparent 25%, transparent),
+            -o-linear-gradient(-45deg, #555 25%, transparent 25%, transparent),
+            -o-linear-gradient(45deg, transparent 75%, #555 75%),
+              -o-linear-gradient(-45deg, transparent 75%, #555 75%) !important;
+  background-image: linear-gradient(45deg, #555 25%, transparent 25%, transparent),
+            linear-gradient(-45deg, #555 25%, transparent 25%, transparent),
+            linear-gradient(45deg, transparent 75%, #555 75%),
+              linear-gradient(-45deg, transparent 75%, #555 75%) !important;
+}
+
 .identification-container
 {
-  background-color: #5cb85c !important;
   text-align: center; 
   height: 80%; 
-  margin-top: 16px; 
+  margin-top: 14px; 
   padding: 13px; 
   color: #FFFFFF !important;
   font-size:22px;
@@ -176,72 +207,37 @@ html,body {
   text-transform: uppercase;
 }
 
-.result-image-original, .result-image-match
+.identification-color-green
 {
-  text-align: center;
-  padding: 20px;
-  float: none;
-  display: table-cell;
+  background-color: #5cb85c !important;
+  background-image: none !important;
 }
 
-.result-image-hover
+.identification-color-red
 {
-  float: none;
-  display: table-cell;
-  text-align: center;
-  font-size: 50px;
-  vertical-align: middle;
-  line-height: 0px;
+  background-color: #d9534f !important;
+  background-image: none !important;
 }
 
-.candidate-image-original
+.identification-color-test
 {
-  text-align: center;
-}
-
-.candidate-image-match
-{
-  text-align: center;
-}
-
-.result-image-correspondences
-{
-  position: absolute;
-  top: 0;
-  left: -100%;
-  background-color: #3071a9;
-  z-index: 9999;
-  height: 100%;
-  padding: 20px;
-  float: none;
-  display: table-cell;
-}
-
-.result-image-original img, .result-image-correspondences img, .result-image-match img
-{
-  max-height: 100%;
-  max-width: 100%;
-}
-
-.candidate-image-original img, .candidate-image-match img
-{
-  height: 174px;
-  margin: 5px;
-}
-
-.candidate-information
-{
-  text-align: center;
+  background-color: #AAA !important;
 }
 
 /* Gogle Maps */
-a[href^="http://maps.google.com/maps"]{display:none !important}
-
-.gmnoprint a, .gmnoprint span, .gm-style-cc {
-    display:none;
+a[href^="http://maps.google.com/maps"]
+{
+  display:none !important
 }
-.gmnoprint div {
-    background:none !important;
+
+.gmnoprint a, .gmnoprint span, .gm-style-cc 
+{
+  display:none !important;
+}
+
+.gmnoprint div 
+{
+  background:none !important;
 }
 
 /* Printing */
