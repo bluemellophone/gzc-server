@@ -103,7 +103,7 @@ def gps():
     print("FILES:", request.files)
 
     car_number = request.form['car_number']
-    car_color = request.form['car_color']
+    car_color = request.form['car_color'].lower()
     gps_data = request.files['gps_data']
 
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
