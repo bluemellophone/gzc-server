@@ -137,7 +137,7 @@ def render_html(car, person):
         return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
     input_file_path = join(data_dir, "/%s/%s/content.html" % (car, person))
     output_file_path = join(data_dir, "/%s/%s/content.pdf" % (car, person))
-    #TODO: Maybe redirect STDERR to something useful so we can read it if needed
+    #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
     wk_retcode = sp.call('wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path))
     if wk_retcode != 0:
         return response(code='2', message='[render_html] Failed to convert HTML to PDF')
@@ -153,12 +153,20 @@ def render_html(car, person):
 @app.route('/print/<car>/<person>', methods=['POST'])
 def print_pdf(car, person):
     # Check for content.pdf in data/pdfs/car/person/, then print it
+    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
+    pdf_path = join(data_dir,"/%s/%s/content.pdf" % (car, person))
+    if not exists(pdf_path):
+        return response(code='3', message="[print_pdf] Could not find pdf at %s" % pdf_path)
     # Print using lpr
     print("GET: ", request.args)
     print("POST:", request.form)
     print("FILES:", request.files)
+    # Obviously change MRC-Lab-Printer to whatever is actually going to be used
+    lpr_retcode = sp.call("lpr -P MRC-Lab-Printer %s" % pdf_path)
+    if lpr_retcode != 0:
+        return response(code='4', message='[print_pdf] lpr failed with error code %d' % lpr_retcode)
     # Return 0 for success, <some_code> for failed to print, a different one for failed to find/read content.pdf
-    return response()
+    return response(code='0')
 
 
 ################################################################################
@@ -179,8 +187,10 @@ def response(code=0, message='', **kwargs):
     '''
         CODES:
             0 - Sucess / Nominal
-            1 - Error / File error
+            1 - Error / File I/O error
             2 - Error / wkhtmltopdf failure
+            3 - Error / No content.pdf
+            4 - Error / Failed to print
     '''
     resp = {
         'status': {
