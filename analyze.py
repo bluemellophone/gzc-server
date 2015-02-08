@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 import cv2
 import simplejson as json
 import optparse
+import webbrowser
 
 # IBEIS
 import ibeis
@@ -13,6 +14,7 @@ import utool as ut
 import numpy as np
 
 from vtool import geometry
+from utool import IMG_EXTENSIONS
 
 from os.path import join, exists, isfile, realpath, split, basename, splitext  # NOQA
 from os import mkdir, listdir
@@ -21,6 +23,11 @@ from shutil import copy
 
 
 DEFAULT_DATA_DIR = 'data'
+SERVER_IP_ADDRESS = '127.0.0.1'
+SERVER_PORT = 5000
+
+FRACTION_FOR_REVIEW = 0.8 # fraction of the input images for whichgenerated results are required 
+MINIMUM_FOR_REVIEW = 5  # minimum number of results required
 
 
 # takes an image and returns a copy such that the smaller dimension is resized to new_size
@@ -139,6 +146,32 @@ def analyze(ibs, qreq_, path_to_file):
             data.update(confidence)
             with open(confidences_file, 'w') as ofile:
                 json.dump(data, ofile)
+        
+        # we need to count how many input files we have received and how many output files have been generated, so that we know if we can send a review request for this directory
+
+        # only count files of image types
+        num_input_giraffes = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'images', car, person, 'giraffe')) if f.endswith(tuple(IMG_EXTENSIONS))])
+
+        num_input_zebras = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'images', car, person, 'zebra')) if f.endswith(tuple(IMG_EXTENSIONS))])        
+        
+        # only count files of json type
+        num_output_giraffes = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')) if f.endswith('.json')])
+        num_output_zebras = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'analysis', car, person, 'zebra')) if f.endswith('.json')])
+
+        # compute the sum (subtract one for confidences.json)
+        num_input = num_input_giraffes + num_input_zebras
+        num_output = num_output_giraffes + num_output_zebras - 1
+
+        # this file will be written once the directory has been sent for review
+        review_indicator_file = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'sentforreview.donotdelete')
+        if num_output >= (FRACTION_FOR_REVIEW * num_input) and \
+           num_output >= MINIMUM_FOR_REVIEW and \
+           not isfile(review_indicator_file):
+            review_url = 'http://%s:%s/review/%s/%s' % (SERVER_IP_ADDRESS, SERVER_PORT, car, person)
+            webbrowser.open(review_url)
+          
+            with open(review_indicator_file, 'w') as ofile:
+                ofile.write('this file tells the observer that this directory has already been sent for review and should not be sent again')
 
 
 if __name__ == '__main__':
