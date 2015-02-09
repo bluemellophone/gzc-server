@@ -109,10 +109,10 @@ def analyze(ibs, qreq_, path_to_file):
     fname_base, fname_ext = splitext(fname)
     for (qx, qres), bbox in zip(enumerate(qres_list), detection_bbox_list):
         aid = qres.get_top_aids(num=1)
-        # fpath = qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False)
+        qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False, saveax=True)
 
         gid_list = ibs.get_annot_gids(aid)
-        match_aid = aid
+        match_aid = aid[0]
         match_gid = gid_list[0]
         img_match = ibs.get_images(gid_list)[0]
 
@@ -147,9 +147,9 @@ def analyze(ibs, qreq_, path_to_file):
             json.dump(information, ofile)
 
         # write the detection confidence(s) for this image to the json file
-        score = ibs.get_annot_detect_confidence(aid)[0]
+        score = str(qres.aid2_score[match_aid])
         confidence = {'%s_%d' % (fname_base, qx): score}
-
+        print(confidence)
         confidences_file = join(animal_dir, 'confidences.json')
         # check if this is the first detection for this person
         if not isfile(confidences_file):

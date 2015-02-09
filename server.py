@@ -85,6 +85,7 @@ def review(car, person):
                     confidence_list = sorted(data.items(), key=operator.itemgetter(1), reverse=True)
                 # Load sorted prefixes
                 for (file_prefix, conf) in confidence_list:
+                    # print(file_prefix, conf)
                     # Load metadata
                     metadata_list = []
                     with open(join(analysis_path, file_prefix + '_data.json')) as f:
