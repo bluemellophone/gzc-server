@@ -1,16 +1,40 @@
 {% extends "layout.html" %}
 {% block content %}
-  <div class="jumbotron">
+  <div class="jumbotron" style="text-align: center; width: 500px; margin-left: auto; margin-right: auto;">
     <h1>Import images</h1>
-    
-    <form action="/images/submit" method="post" enctype="multipart/form-data">
-        <input type="" name="car_color"/>
-        <input type="" name="car_number"/>
-        <input type="" name="person_letter"/>
-        <input type="" name="image_first_time_hour"/>
-        <input type="" name="image_first_time_minute"/>
-        <input type="file" name="image_archive"/>
-        <input type="submit" value="Import Images" name="submit">
+
+    <form action="/images/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
+        <div class="form-group">
+            <label for="car_color">Car Color</label>
+            <input type="text" class="form-control" id="car_color" placeholder="Car Color">
+        </div>
+
+        <div class="form-group">
+            <label for="car_number">Car Number</label>
+            <input type="text" class="form-control" id="car_number" placeholder="Car Number">
+        </div>
+
+        <div class="form-group">
+            <label for="person_letter">Person Letter</label>
+            <input type="text" class="form-control" id="person_letter" placeholder="Person Letter">
+        </div>
+
+        <div class="form-group">
+            <label for="image_first_time_hour">First Image Hour</label>
+            <input type="text" class="form-control" id="image_first_time_hour" placeholder="Hour">
+        </div>
+
+        <div class="form-group">
+            <label for="image_first_time_minute">First Image Minute</label>
+            <input type="text" class="form-control" id="image_first_time_minute" placeholder="Minute">
+        </div>
+
+        <div class="form-group">
+            <label for="image_archive">Image Archive</label>
+            <input type="file" id="image_archive">
+        </div>
+
+        <button type="submit" class="btn btn-default">Submit</button>
     </form>
   </div>
 {% endblock %}
