@@ -1,14 +1,19 @@
 from __future__ import absolute_import, division, print_function
+# HTTP / HTML
+import flask
+# Web Internal
+import xml.etree.ElementTree as ET
+import simplejson as json
+import cStringIO as StringIO
+import navbar
+# Image
 from PIL import Image
 import numpy as np
-import cStringIO as StringIO
-import re
-from os.path import join, exists
+# Other
 from os import mkdir
-import flask
-import simplejson as json
-import navbar
+from os.path import join, exists
 from datetime import date
+import re
 
 
 ORIENTATIONS = {   # used in apply_orientation
@@ -124,7 +129,6 @@ def ensure_structure(data, kind, car_number, car_color, person=None):
     kind       = kind.lower()
     car_number = car_number.lower()
     car_color  = car_color.lower()
-    person     = person.lower()
     # Create data dir
     if not exists(data):
         mkdir(data)
@@ -140,8 +144,16 @@ def ensure_structure(data, kind, car_number, car_color, person=None):
     if person is None:
         return car_dir
     # Create person dir
+    person     = person.lower()
     person_dir = join(car_dir, person)
     if not exists(person_dir):
         mkdir(person_dir)
     # Return peron dir
     return person_dir
+
+
+def convert_gpx_to_json(gpx_str):
+    json_list = []
+    root = ET.fromstring(gpx_str)
+    print(root)
+    return json.dumps({ "track": json_list })

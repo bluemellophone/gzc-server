@@ -6,27 +6,27 @@
     <form action="/gps/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
         <div class="form-group">
             <label for="car_color">Car Color</label>
-            <input type="text" class="form-control" id="car_color" placeholder="Car Color">
+            <input type="text" name="car_color" class="form-control" id="car_color" placeholder="Car Color">
         </div>
 
         <div class="form-group">
             <label for="car_number">Car Number</label>
-            <input type="text" class="form-control" id="car_number" placeholder="Car Number">
+            <input type="text" name="car_number" class="form-control" id="car_number" placeholder="Car Number">
         </div>
 
         <div class="form-group">
             <label for="gps_first_time_hour">First GPS Location Hour</label>
-            <input type="text" class="form-control" id="gps_first_time_hour" placeholder="Hour">
+            <input type="text" name="gps_first_time_hour" class="form-control" id="gps_first_time_hour" placeholder="Hour">
         </div>
 
         <div class="form-group">
             <label for="gps_first_time_minute">First GPS Location Minute</label>
-            <input type="text" class="form-control" id="gps_first_time_minute" placeholder="Minute">
+            <input type="text" name="gps_first_time_minute" class="form-control" id="gps_first_time_minute" placeholder="Minute">
         </div>
 
         <div class="form-group">
-            <label for="gps_archive">GPS Track File (GPX)</label>
-            <input type="file" id="gps_archive">
+            <label for="gps_data">GPS Track File (GPX)</label>
+            <input type="file" name="gps_data" id="gps_data">
         </div>
 
         <button type="submit" class="btn btn-default">Submit</button>

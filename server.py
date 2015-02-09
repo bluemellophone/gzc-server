@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 # HTTP / HTML
 import socket
@@ -13,7 +12,7 @@ import subprocess as sp
 import simplejson as json
 import optparse
 import logging
-# Others
+# Other
 from os.path import join, exists
 import utool as ut
 import operator
@@ -35,6 +34,9 @@ DEFAULT_PRINTER_NAME = '_128_213_17_40'
 
 # Application
 app = flask.Flask(__name__)
+# print('GET:  ', request.args)
+# print('POST: ', request.form)
+# print('FILES:', request.files)
 
 
 ################################################################################
@@ -134,9 +136,9 @@ def print_pdf(car, person):
 @app.route('/images/submit', methods=['POST'])
 def images():
     # Process images for car and person
-    car_color     = request.form['car_color']
-    car_number    = request.form['car_number']
-    person        = request.form['person_letter']
+    car_color     = request.form['car_color'].lower()
+    car_number    = request.form['car_number'].lower()
+    person        = request.form['person_letter'].lower()
     image_archive = request.files['image_archive']
     # Ensure the folder
     person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'images', car_number, car_color, person)
@@ -150,13 +152,21 @@ def images():
 @app.route('/gps/submit', methods=['POST'])
 def gps():
     # Process gps for car
-    car_color  = request.form['car_color']
-    car_number = request.form['car_number']
+    car_color  = request.form['car_color'].lower()
+    car_number = request.form['car_number'].lower()
     gps_data   = request.files['gps_data']
     # Ensure the folder
     car_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'gps', car_number, car_color)
-    # Save GPS into folder
-    gps_data.save(join(car_dir, 'track.gpx'))
+    input_path  = join(car_dir, 'track.gpx')
+    output_path = join(car_dir, 'track.json')
+    # Save track.gpx into folder
+    gps_data.save(input_path)
+    # Convert the gpx file to json for javascript to be able to read it
+    with open(input_path, 'r') as gpx_file:
+        with open(output_path, 'w') as json_file:
+            gpx_content = gpx_file.read()
+            json_content = sf.convert_gpx_to_json(gpx_content)
+            json_file.write(json_content)
     # Return nice response
     return sf.response()
 
