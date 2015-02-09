@@ -109,7 +109,7 @@ def analyze(ibs, qreq_, path_to_file):
     fname_base, fname_ext = splitext(fname)
     for (qx, qres), bbox in zip(enumerate(qres_list), detection_bbox_list):
         aid = qres.get_top_aids(num=1)
-        # fpath = qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False)
+        qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False)
 
         gid_list = ibs.get_annot_gids(aid)
         match_aid = aid
