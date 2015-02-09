@@ -6,7 +6,7 @@ import time
 import ibeis
 import analyze
 
-from watchdog.observers import Observer  
+from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
 import multiprocessing
@@ -42,10 +42,10 @@ class NonDaemonicPool(multiprocessing.pool.Pool):
 class NewImageHandler(PatternMatchingEventHandler):
     # we only want to check for new image files
     patterns = ['*%s' % ext for ext in IMG_EXTENSIONS]
-    
+
     def process(self, event):
         """
-        event.event_type 
+        event.event_type
             'modified' | 'created' | 'moved' | 'deleted'
         event.is_directory
             True | False
@@ -54,7 +54,7 @@ class NewImageHandler(PatternMatchingEventHandler):
         """
         # need to sleep to give the OS time to finish writing the file
         time.sleep(1)
-        r = pool.apply_async(process_image, args=[event.src_path], callback=done_processing)
+        pool.apply_async(process_image, args=[event.src_path], callback=done_processing)
         print('file: %s, event: %s' % (event.src_path, event.event_type))
 
 #    def on_modified(self, event):
@@ -82,27 +82,27 @@ def recover_state(pool, data_dir, results_dir):
         for filename in filenames:
             # only check for actual animal images
             _, animal = split(root)
-            if animal == 'giraffe' or animal == 'zebra': 
+            if animal == 'giraffe' or animal == 'zebra':
                 input_files.append(join(root, filename))
-    
+
     # remember to remove leading backslash so that os.path.join works correctly
     input_files_cleaned = [text.replace(data_dir, '')[1:] for text in input_files]
 
     # for all the input files, check if the corresponding json file exists
     for filepath_clean, filepath_full in zip(input_files_cleaned, input_files):
         path, ext = splitext(filepath_clean)
-        
+
         # check if the json file has been created
         file_to_check_json = join(results_dir, '%s_0_data.json' % (path))
 
         # we need to check if the match file exists, but need to check all extensions
-        files_to_check_match = [join(results_dir, '%s_0_match%s' % (path, ext)) for ext in IMG_EXTENSIONS]
+        files_to_check_match = [join(results_dir, '%s_0_match%s' % (path, _ext)) for _ext in IMG_EXTENSIONS]
         files_to_check_match_existence = [isfile(fname) for fname in files_to_check_match]
 
         # if the either the json file does't exist or no match file is found, re-analyze this file
-        if not isfile(file_to_check_json) or not True in files_to_check_match_existence:
+        if not isfile(file_to_check_json) or True not in files_to_check_match_existence:
             print('the file %s has to be analyzed' % (realpath(filepath_full)))
-            r = pool.apply_async(process_image, args=[realpath(filepath_full)], callback=done_processing)
+            pool.apply_async(process_image, args=[realpath(filepath_full)], callback=done_processing)
 
 
 if __name__ == '__main__':
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     # need to check if any files were written while the observer was offline
     recover_state(pool, path_to_watch, results_dir)
-    
+
     # create the file observer that will watch for new files
     observer = Observer()
     observer.schedule(NewImageHandler(), path=path_to_watch, recursive=True)
@@ -136,4 +136,3 @@ if __name__ == '__main__':
         observer.stop()
 
     observer.join()
-

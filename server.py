@@ -12,6 +12,7 @@ import socket
 import simplejson as json
 # Web Internal
 import re
+import operator
 import subprocess as sp
 import serverfuncs, navbar  # NOQA
 # Others
@@ -54,13 +55,61 @@ def gps_form():
 @app.route('/review/<car>/<person>')
 def review(car, person):
     # Jason will work on this function
+    car = car.lower()
+    person = person.lower()
     try:
-        car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car.lower())
+        car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car)
+        if car_color.isdigit():
+            # Flip - color entered first
+            car_number, car_color = car_color, car_number
+        car_str = car_number + car_color
     except:
         car_number, car_color = '&#8734;', car
-    print("CAR:", car, car_color, car_number)
+        car_str = car
+    # Print Processing
+    print("CAR:", car_str, car_color, car_number)
     print("PARSON:", person)
-    return template('review', car_color=car_color, car_number=car_number, person=person)
+    # Build analysis list
+    valid = False
+    analysis_list = []
+    gps_path = 'data/gps/%s/track.json' % (car_str, )
+    gps_url = url_for('static', filename=gps_path)
+    if exists(gps_path):
+        # Get GPS url
+        # Get analysis
+        for species in ['zebra', 'giraffe']:
+            analysis_path = join('data', 'analysis', car_str, person, species)
+            confidence_path = join(analysis_path, 'confidences.json')
+            if exists(confidence_path):
+                with open(confidence_path) as f:
+                    data = json.load(f)
+                    confidence_list = sorted(data.items(), key=operator.itemgetter(1), reverse=True)
+                # Load sorted prefixes
+                for (file_prefix, conf) in confidence_list:
+                    # Load metadata
+                    metadata_list = []
+                    with open(join(analysis_path, file_prefix + '_data.json')) as f:
+                        data = json.load(f)
+                        for key in sorted(data.keys()):
+                            metadata = 'metadata-%s="%s"' % (key, data[key], )
+                            metadata_list.append(metadata)
+                    # Load image paths
+                    correspondences = url_for('static', filename=join(analysis_path, file_prefix + '_correspondences.jpg'))
+                    original        = url_for('static', filename=join(analysis_path, file_prefix + '_original.jpg'))
+                    match           = url_for('static', filename=join(analysis_path, file_prefix + '_match.jpg'))
+                    metadata        = ' '.join(metadata_list)
+                    # Buidl analysis
+                    analysis = (len(analysis_list), correspondences, original, match, metadata)
+                    print(analysis)
+                    analysis_list.append(analysis)
+            else:
+                print('ERROR: %s has no analysis' % (analysis_path, ))
+        # Set valid flag
+        if len(analysis_list) >= 1:
+            valid = True
+    return template('review', car_str=car_str, car_color=car_color,
+                    car_number=car_number, person=person, gps_url=gps_url,
+                    analysis_list=analysis_list, valid=valid)
 
 
 ################################################################################
@@ -154,7 +203,7 @@ def render_html(car, person):
 def print_pdf(car, person):
     # Check for content.pdf in data/pdfs/car/person/, then print it
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
-    pdf_path = join(data_dir,"/%s/%s/content.pdf" % (car, person))
+    pdf_path = join(data_dir, "/%s/%s/content.pdf" % (car, person))
     if not exists(pdf_path):
         return response(code='3', message="[print_pdf] Could not find pdf at %s" % pdf_path)
     # Print using lpr

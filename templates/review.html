@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-    {% if False %}
+    {% if not valid %}
         <div class="jumbotron" style="text-align: center">
             <h3>OOPS...</h3>
             <p>
@@ -22,7 +22,8 @@
 
             $( document ).ready( function() {
                 
-                $.getJSON("{{ url_for('static', filename='data/gps/test/track.json') }}", function( data ) {
+                var gps_url = "{{ gps_url }}";
+                $.getJSON(gps_url, function( data ) {
                     $.each( data.track, function( key, marker ) {
                         track[marker.time] = [marker.lat, marker.lon];
                     });
@@ -143,16 +144,16 @@
         <div class="row" id="splitter">
             <div class="col-md-6" id="content-left" style="padding-left: 50px;">
                 <div class="analysis-container">
-                    {% for i in range(10) %}
-                        <div class="row analysis" id="analysis-{{ i }}" onclick="toggleAnalysis({{ i }});" analysis="{{ i }}" metadata-title="{{ 'test.jpg' }}" metadata-time="{{ 1423154900 }}">                  
+                    {% for (i, correspondences, original, match, metadata) in analysis_list %}
+                        <div class="row analysis" id="analysis-{{ i }}" onclick="toggleAnalysis({{ i }});" analysis="{{ i }}" {{ metadata }}>                  
                             <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ i }}">
-                                <img src="{{ url_for('static', filename='data/analysis/test/test/zebra/image1_0_correspondences.jpg') }}" />
+                                <img src="{{ correspondences }}" />
                             </div>   
                             <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-original" id="analysis-image-original-{{ i }}">
-                                <img src="{{ url_for('static', filename='data/analysis/test/test/zebra/image1_0_original.jpg') }}" />
+                                <img src="{{ original }}" />
                             </div>
                             <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-match" id="analysis-image-match-{{ i }}">
-                                <img src="{{ url_for('static', filename='data/analysis/test/test/zebra/image1_0_match.png') }}" />
+                                <img src="{{ match }}" />
                             </div>
                             <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover" id="analysis-image-hover-{{ i }}" analysis="{{ i }}">
                                 <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
