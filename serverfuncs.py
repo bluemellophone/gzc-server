@@ -12,7 +12,8 @@ import numpy as np
 # Other
 from os import mkdir
 from os.path import join, exists
-from datetime import date
+from datetime import datetime, date
+import time
 import re
 
 
@@ -155,5 +156,22 @@ def ensure_structure(data, kind, car_number, car_color, person=None):
 def convert_gpx_to_json(gpx_str):
     json_list = []
     root = ET.fromstring(gpx_str)
-    print(root)
+
+    namespace = '{http://www.topografix.com/GPX/1/1}'
+    # Load all waypoint elements
+    element = './/%strkpt' % (namespace, )
+    trkpt_list = root.findall(element)
+    for trkpt in trkpt_list:
+        # Load time out of trkpt
+        element = './/%stime' % (namespace, )
+        dt = datetime.strptime(trkpt.find(element).text, '%Y-%m-%dT%H:%M:%S.%fZ')
+        # Gather values
+        posix = int(time.mktime(dt.timetuple()))
+        lat   = float(trkpt.get('lat'))
+        lon   = float(trkpt.get('lon'))
+        json_list.append({
+            'time': posix,
+            'lat':  lat,
+            'lon':  lon,
+        })
     return json.dumps({ "track": json_list })
