@@ -11,22 +11,28 @@ import logging
 import socket
 import simplejson as json
 # Web Internal
-import re
 import operator
 import subprocess as sp
-import serverfuncs, navbar  # NOQA
+import serverfuncs as sf
+import navbar
 # Others
 import zipfile
 from datetime import date
-from os.path import join, exists, realpath  # NOQA
-from os import mkdir, listdir  # NOQA
+from os.path import join, exists
 
 import utool as ut
 
 
+# Flags
 BROWSER = ut.get_argflag('--browser')
+
+# Defaults
 DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
+# DEFAULT_PRINTER_NAME = 'MRC-Lab-Printer'
+DEFAULT_PRINTER_NAME = '_128_213_17_40'
+
+# Application
 app = flask.Flask(__name__)
 global_args = {
     'NAVBAR': navbar.NavbarClass(),
@@ -54,21 +60,8 @@ def gps_form():
 
 @app.route('/review/<car>/<person>')
 def review(car, person):
-    # Jason will work on this function
-    car = car.lower()
-    person = person.lower()
-    try:
-        car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car)
-        if car_color.isdigit():
-            # Flip - color entered first
-            car_number, car_color = car_color, car_number
-        car_str = car_number + car_color
-    except:
-        car_number, car_color = '&#8734;', car
-        car_str = car
-    # Print Processing
-    print("CAR:", car_str, car_color, car_number)
-    print("PARSON:", person)
+    # Process the car and person strings
+    car_str, car_number, car_color, person = sf.process_person(car, person)
     # Build analysis list
     valid = False
     analysis_list = []
@@ -116,79 +109,45 @@ def review(car, person):
 
 @app.route('/images/submit', methods=['POST'])
 def images():
-    print("GET:  ", request.args)
-    print("POST: ", request.form)
-    print("FILES:", request.files)
-
-    person_letter = request.form['person_letter'].lower()
-    car_number = request.form['car_number']
-    car_color = request.form['car_color'].lower()
+    # Process images for car and person
+    car_color     = request.form['car_color']
+    car_number    = request.form['car_number']
+    person        = request.form['person_letter']
     image_archive = request.files['image_archive']
-
-    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
-    if not exists(data_dir):
-        mkdir(data_dir)
-    image_dir = join(data_dir, 'images')
-    if not exists(image_dir):
-        mkdir(image_dir)
-    car_dir = join(image_dir, car_number + car_color)
-    if not exists(car_dir):
-        mkdir(car_dir)
-    person_dir = join(car_dir, person_letter)
-    if not exists(person_dir):
-        mkdir(person_dir)
-
+    # Ensure the folder
+    person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'images', car_number, car_color, person)
+    # Extract the content
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
-
+    # Return nice response
     return response()
 
 
 @app.route('/gps/submit', methods=['POST'])
 def gps():
-    print("GET: ", request.args)
-    print("POST:", request.form)
-    print("FILES:", request.files)
-
+    # Process gps for car
+    car_color  = request.form['car_color']
     car_number = request.form['car_number']
-    car_color = request.form['car_color'].lower()
-    gps_data = request.files['gps_data']
-
-    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
-    if not exists(data_dir):
-        mkdir(data_dir)
-    gps_dir = join(data_dir, 'gps')
-    if not exists(gps_dir):
-        mkdir(gps_dir)
-    car_dir = join(gps_dir, car_number + car_color)
-    if not exists(car_dir):
-        mkdir(car_dir)
-
-    gps_data.save(join(car_dir, 'dummy_gps.csv'))
-
+    gps_data   = request.files['gps_data']
+    # Ensure the folder
+    car_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'gps', car_number, car_color)
+    # Save GPS into folder
+    gps_data.save(join(car_dir, 'track.gpx'))
+    # Return nice response
     return response()
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])
 def render_html(car, person):
-    # print("GET: ", request.args)
-    # print("POST:", request.form)
-    # print("FILES:", request.files)
-    # Take HTML content, write to file (content.html), call wkhtmltopdf, save the pdf in data/pdfs/car/person/content.pdf
-    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
-    if not exists(data_dir):
-        mkdir(data_dir)
-    image_dir = join(data_dir, 'pdfs')
-    if not exists(image_dir):
-        mkdir(image_dir)
-    car_dir = join(image_dir, car)
-    if not exists(car_dir):
-        mkdir(car_dir)
-    person_dir = join(car_dir, person)
-    if not exists(person_dir):
-        mkdir(person_dir)
+    # Process the car and person strings
+    car_str, car_number, car_color, person = sf.process_person(car, person)
+    # Ensure the folder
+    person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'pdfs', car_number, car_color, person)
+    # Dump the html content to content.html file
+    input_path  = join(person_dir, 'content.html')
+    output_path = join(person_dir, 'content.pdf')
     try:
-        with open(join(data_dir, "pdfs/%s/%s/content.html" % (car, person)), 'w') as html_file:
+        with open(input_path, 'w') as html_file:
             printable = url_for('static', filename='css/printable.css')
             head_content = request.form['head_content']
             html_content = request.form['html_content']
@@ -213,41 +172,30 @@ def render_html(car, person):
             html_file.write(content)
     except IOError as ioe:
         return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
-    input_file_path = join(data_dir, "pdfs/%s/%s/content.html" % (car, person))
-    output_file_path = join(data_dir, "pdfs/%s/%s/content.pdf" % (car, person))
+    # Render content.html with wkhtmltopdf to content.pdf
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
-    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path)
+    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_path, output_path)
     # print(execute)
     sp.Popen(execute, shell=True)
-
-    # wk_retcode = sp.call(execute, shell=True)
-    # if wk_retcode != 0:
-    #     return response(code='2', message='[render_html] Failed to convert HTML to PDF')
-    # This function needs to call wkhtmltopdf with the HTML content in the POST
-    # variable 'html_content'.  The wkhtmltopdf code will take the html file
-    # and render it to PDF.  Then, the file needs to be sent to a printer by some
-    # Python module, see:
-    #     http://stackoverflow.com/questions/12723818/print-to-standard-printer-from-python
-    # Return 0 for success, something for failed to write content.pdf
-    return response(code='0')
+    # Return nice response
+    return response()
 
 
-@app.route('/print/<car>/<person>', methods=['POST'])
+@app.route('/print/<car>/<person>')
 def print_pdf(car, person):
-    # Check for content.pdf in data/pdfs/car/person/, then print it
-    data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
-    pdf_path = join(data_dir, "/%s/%s/content.pdf" % (car, person))
+    # Process the car and person strings
+    car_str, car_number, car_color, person = sf.process_person(car, person)
+    # Ensure the folder
+    person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'pdfs', car_number, car_color, person)
+    # Check if content.pdf has been written for this person
+    pdf_path = join(person_dir, 'content.pdf')
     if not exists(pdf_path):
-        return response(code='3', message="[print_pdf] Could not find pdf at %s" % pdf_path)
+        return response(code='3', message='[print_pdf] Could not find pdf at %s' % pdf_path)
     # Print using lpr
-    print("GET: ", request.args)
-    print("POST:", request.form)
-    print("FILES:", request.files)
     # Obviously change MRC-Lab-Printer to whatever is actually going to be used
-    lpr_retcode = sp.call("lpr -P MRC-Lab-Printer %s" % pdf_path)
-    if lpr_retcode != 0:
-        return response(code='4', message='[print_pdf] lpr failed with error code %d' % lpr_retcode)
-    # Return 0 for success, <some_code> for failed to print, a different one for failed to find/read content.pdf
+    execute = 'lpr -P %s %s' % (DEFAULT_PRINTER_NAME, pdf_path, )
+    sp.Popen(execute, shell=True)
+    # Return nice response
     return response(code='0')
 
 
@@ -307,17 +255,8 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
     if browser:
         import webbrowser
         webbrowser.open(url)
-
-    # Reconstruct data state
-    # TODO: RECONSTRUCT THE STATE OF THE DATA FROM THE FILES
-
     # Blocking
     _start_tornado()
-    # if blocking:
-    #     _start_tornado()
-    # else:
-    #     import threading
-    #     threading.Thread(target=_start_tornado).start()
 
 
 def start_from_terminal():

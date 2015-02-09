@@ -2,6 +2,9 @@ from __future__ import absolute_import, division, print_function
 from PIL import Image
 import numpy as np
 import cStringIO as StringIO
+import re
+from os.path import join, exists
+from os import mkdir
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -55,3 +58,48 @@ def embed_image_html(image, filter_width=True):
     image_pil.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data
+
+
+def process_person(car, person):
+    car = car.lower()
+    person = person.lower()
+    try:
+        car_number, car_color = re.findall(r"[^\W\d_]+|\d+", car)
+        if car_color.isdigit():
+            # Flip - color entered first
+            car_number, car_color = car_color, car_number
+        car_str = car_number + car_color
+    except:
+        car_number, car_color = '&#8734;', car
+        car_str = car
+    print("CAR: %s [ %s - %s ]" % (car_str, car_color, car_number, ))
+    print("PARSON: %s" % (person, ))
+    return car_str, car_number, car_color, person
+
+
+def ensure_structure(data, kind, car_number, car_color, person=None):
+    data       = data.lower()
+    kind       = kind.lower()
+    car_number = car_number.lower()
+    car_color  = car_color.lower()
+    person     = person.lower()
+    # Create data dir
+    if not exists(data):
+        mkdir(data)
+    # Create kind dir
+    kind_dir = join(data, kind)
+    if not exists(kind_dir):
+        mkdir(kind_dir)
+    # Create car dir
+    car_dir = join(kind_dir, car_number + car_color)
+    if not exists(car_dir):
+        mkdir(car_dir)
+    # If no person, return car dir
+    if person is None:
+        return car_dir
+    # Create person dir
+    person_dir = join(car_dir, person)
+    if not exists(person_dir):
+        mkdir(person_dir)
+    # Return peron dir
+    return person_dir
