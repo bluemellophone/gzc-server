@@ -5,6 +5,11 @@ import cStringIO as StringIO
 import re
 from os.path import join, exists
 from os import mkdir
+import flask
+import simplejson as json
+import navbar
+from datetime import date
+
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -14,6 +19,12 @@ ORIENTATIONS = {   # used in apply_orientation
     6: (Image.ROTATE_270,),
     7: (Image.FLIP_LEFT_RIGHT, Image.ROTATE_270),
     8: (Image.ROTATE_90,)
+}
+
+
+global_args = {
+    'NAVBAR': navbar.NavbarClass(),
+    'YEAR':   date.today().year,
 }
 
 
@@ -58,6 +69,37 @@ def embed_image_html(image, filter_width=True):
     image_pil.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data
+
+
+def template(template_name=None, **kwargs):
+    if template_name is None :
+        template_name = 'index'
+    template_ = template_name + '.html'
+    # Update global args with the template's args
+    _global_args = dict(global_args)
+    _global_args.update(kwargs)
+    print(template_)
+    return flask.render_template(template_, **_global_args)
+
+
+def response(code=0, message='', **kwargs):
+    '''
+        CODES:
+            0 - Sucess / Nominal
+            1 - Error / File I/O error
+            2 - Error / wkhtmltopdf failure
+            3 - Error / No content.pdf
+            4 - Error / Failed to print
+    '''
+    resp = {
+        'status': {
+            'code': code,
+            'message': message,
+        }
+    }
+    if kwargs:
+        resp['data'] = kwargs
+    return json.dumps(resp)
 
 
 def process_person(car, person):

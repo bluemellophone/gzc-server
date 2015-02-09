@@ -2,26 +2,27 @@
 # Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 # HTTP / HTML
+import socket
 import tornado.wsgi
 import tornado.httpserver
 import flask
 from flask import request, redirect, url_for, make_response  # NOQA
+# Web Internal
+import serverfuncs as sf
+import subprocess as sp
+import simplejson as json
 import optparse
 import logging
-import socket
-import simplejson as json
-# Web Internal
-import operator
-import subprocess as sp
-import serverfuncs as sf
-import navbar
 # Others
-import zipfile
-from datetime import date
 from os.path import join, exists
-
 import utool as ut
+import operator
+import zipfile
 
+
+################################################################################
+# SERVER PARAMETERS
+################################################################################
 
 # Flags
 BROWSER = ut.get_argflag('--browser')
@@ -34,28 +35,31 @@ DEFAULT_PRINTER_NAME = '_128_213_17_40'
 
 # Application
 app = flask.Flask(__name__)
-global_args = {
-    'NAVBAR': navbar.NavbarClass(),
-    'YEAR':   date.today().year,
-}
 
 
+################################################################################
+# SIMPLE ROUTES
 ################################################################################
 
 
 @app.route('/')
 def index():
-    return template(None)
+    return sf.template(None)
 
 
 @app.route('/images/form')
 def images_form():
-    return template('images')
+    return sf.template('images')
 
 
 @app.route('/gps/form')
 def gps_form():
-    return template('gps')
+    return sf.template('gps')
+
+
+################################################################################
+# COMPLEX / GET ROUTES
+################################################################################
 
 
 @app.route('/review/<car>/<person>')
@@ -99,11 +103,31 @@ def review(car, person):
         # Set valid flag
         if len(analysis_list) >= 1:
             valid = True
-    return template('review', car_str=car_str, car_color=car_color,
-                    car_number=car_number, person=person, gps_url=gps_url,
-                    analysis_list=analysis_list, valid=valid)
+    return sf.template('review', car_str=car_str, car_color=car_color,
+                       car_number=car_number, person=person, gps_url=gps_url,
+                       analysis_list=analysis_list, valid=valid)
 
 
+@app.route('/print/<car>/<person>')
+def print_pdf(car, person):
+    # Process the car and person strings
+    car_str, car_number, car_color, person = sf.process_person(car, person)
+    # Ensure the folder
+    person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'pdfs', car_number, car_color, person)
+    # Check if content.pdf has been written for this person
+    pdf_path = join(person_dir, 'content.pdf')
+    if not exists(pdf_path):
+        return sf.response(code='3', message='[print_pdf] Could not find pdf at %s' % pdf_path)
+    # Print using lpr
+    # Obviously change MRC-Lab-Printer to whatever is actually going to be used
+    execute = 'lpr -P %s %s' % (DEFAULT_PRINTER_NAME, pdf_path, )
+    sp.Popen(execute, shell=True)
+    # Return nice response
+    return sf.response(code='0')
+
+
+################################################################################
+# POST ROUTES
 ################################################################################
 
 
@@ -120,7 +144,7 @@ def images():
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
     # Return nice response
-    return response()
+    return sf.response()
 
 
 @app.route('/gps/submit', methods=['POST'])
@@ -134,7 +158,7 @@ def gps():
     # Save GPS into folder
     gps_data.save(join(car_dir, 'track.gpx'))
     # Return nice response
-    return response()
+    return sf.response()
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])
@@ -171,68 +195,18 @@ def render_html(car, person):
             content = content.encode('utf-8')
             html_file.write(content)
     except IOError as ioe:
-        return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
+        return sf.response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
     # Render content.html with wkhtmltopdf to content.pdf
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
     execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_path, output_path)
     # print(execute)
     sp.Popen(execute, shell=True)
     # Return nice response
-    return response()
-
-
-@app.route('/print/<car>/<person>')
-def print_pdf(car, person):
-    # Process the car and person strings
-    car_str, car_number, car_color, person = sf.process_person(car, person)
-    # Ensure the folder
-    person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'pdfs', car_number, car_color, person)
-    # Check if content.pdf has been written for this person
-    pdf_path = join(person_dir, 'content.pdf')
-    if not exists(pdf_path):
-        return response(code='3', message='[print_pdf] Could not find pdf at %s' % pdf_path)
-    # Print using lpr
-    # Obviously change MRC-Lab-Printer to whatever is actually going to be used
-    execute = 'lpr -P %s %s' % (DEFAULT_PRINTER_NAME, pdf_path, )
-    sp.Popen(execute, shell=True)
-    # Return nice response
-    return response(code='0')
+    return sf.response()
 
 
 ################################################################################
-
-
-def template(template_name=None, **kwargs):
-    if template_name is None :
-        template_name = 'index'
-    template_ = template_name + '.html'
-    # Update global args with the template's args
-    _global_args = dict(global_args)
-    _global_args.update(kwargs)
-    print(template_)
-    return flask.render_template(template_, **_global_args)
-
-
-def response(code=0, message='', **kwargs):
-    '''
-        CODES:
-            0 - Sucess / Nominal
-            1 - Error / File I/O error
-            2 - Error / wkhtmltopdf failure
-            3 - Error / No content.pdf
-            4 - Error / Failed to print
-    '''
-    resp = {
-        'status': {
-            'code': code,
-            'message': message,
-        }
-    }
-    if kwargs:
-        resp['data'] = kwargs
-    return json.dumps(resp)
-
-
+# TORNADO / FLASK INITIALIZATION
 ################################################################################
 
 
@@ -260,17 +234,14 @@ def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True
 
 
 def start_from_terminal():
-    '''
-    Parse command line options and start the server.
-    '''
+    # Parse command line arduments
     parser = optparse.OptionParser()
     parser.add_option(
         '-p', '--port',
         help='which port to serve content on',
         type='int', default=DEFAULT_PORT)
-
+    # Start tornado
     opts, args = parser.parse_args()
-
     start_tornado(app, opts.port)
 
 
