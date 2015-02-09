@@ -100,9 +100,11 @@ html,body {
 {
   max-height: 100%;
   max-width: 100%;
+  /*
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
   box-shadow: 1px 1px 8px gray;
+  */
 }
 
 .analysis-image-correspondences img
@@ -129,9 +131,11 @@ html,body {
   height: auto;
   max-height: 175px;
   margin: 5px;
+  /*  
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
   box-shadow: 1px 1px 8px gray;
+  */
 }
 
 .candidate-information
@@ -139,7 +143,34 @@ html,body {
   text-align: center;
   display: table-cell;
   float: none;
+  padding: 0px;
+  position: relative;
 }
+
+/* BEGIN VERSION 2 */
+.candidate-information-top, .candidate-information-bottom
+{
+  height: 50%;
+  width: 100%;
+  padding: 0px 10px;
+}
+
+.candidate-information-top h4, .candidate-information-bottom h4
+{
+  margin: 0px;
+  padding-top: 10px;
+}
+
+.candidate-information-top, .candidate-image-match
+{
+  background-color: #DDD !important;
+}
+
+.candidate-information-bottom, .candidate-image-original
+{
+  background-color: #CCC !important;
+}
+/* END VERSION 2 */
 
 #splitter
 {

@@ -91,7 +91,7 @@ def review(car, person):
                     with open(join(analysis_path, file_prefix + '_data.json')) as f:
                         data = json.load(f)
                         for key in sorted(data.keys()):
-                            metadata = 'metadata-%s="%s"' % (key, data[key], )
+                            metadata = 'metadata-%s="%s"' % (key.replace("_", "-"), data[key], )
                             metadata_list.append(metadata)
                     # Load image paths
                     correspondences = url_for('static', filename=join(analysis_path, file_prefix + '_correspondences.jpg'))
