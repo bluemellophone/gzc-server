@@ -98,9 +98,8 @@ def review(car, person):
                     original        = url_for('static', filename=join(analysis_path, file_prefix + '_original.jpg'))
                     match           = url_for('static', filename=join(analysis_path, file_prefix + '_match.jpg'))
                     metadata        = ' '.join(metadata_list)
-                    # Buidl analysis
+                    # Build analysis
                     analysis = (len(analysis_list), correspondences, original, match, metadata)
-                    print(analysis)
                     analysis_list.append(analysis)
             else:
                 print('ERROR: %s has no analysis' % (analysis_path, ))
@@ -172,24 +171,58 @@ def gps():
 
 @app.route('/render/<car>/<person>', methods=['POST'])
 def render_html(car, person):
+    # print("GET: ", request.args)
+    # print("POST:", request.form)
+    # print("FILES:", request.files)
     # Take HTML content, write to file (content.html), call wkhtmltopdf, save the pdf in data/pdfs/car/person/content.pdf
     data_dir = DEFAULT_DATA_DIR  # this should eventually be an option
     if not exists(data_dir):
         mkdir(data_dir)
-    print("GET: ", request.args)
-    print("POST:", request.form)
-    print("FILES:", request.files)
+    image_dir = join(data_dir, 'pdfs')
+    if not exists(image_dir):
+        mkdir(image_dir)
+    car_dir = join(image_dir, car)
+    if not exists(car_dir):
+        mkdir(car_dir)
+    person_dir = join(car_dir, person)
+    if not exists(person_dir):
+        mkdir(person_dir)
     try:
-        with open(join(data_dir, "/%s/%s/content.html" % (car, person)), 'w') as html_file:
-            html_file.write(request.html_content)
+        with open(join(data_dir, "pdfs/%s/%s/content.html" % (car, person)), 'w') as html_file:
+            printable = url_for('static', filename='css/printable.css')
+            head_content = request.form['head_content']
+            html_content = request.form['html_content']
+            content = '''
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    %s
+                    <link type="text/css" rel="stylesheet" href="%s"/>
+                </head>
+                <body>
+                    <div class="printarea">
+                        <div class="printarea-document">
+                            %s
+                        </div>
+                    </div>
+                </body>
+            <html>'
+            ''' % (head_content, printable, html_content)
+            content = content.replace('/static/', request.url_root + 'static/')
+            content = content.encode('utf-8')
+            html_file.write(content)
     except IOError as ioe:
         return response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
-    input_file_path = join(data_dir, "/%s/%s/content.html" % (car, person))
-    output_file_path = join(data_dir, "/%s/%s/content.pdf" % (car, person))
+    input_file_path = join(data_dir, "pdfs/%s/%s/content.html" % (car, person))
+    output_file_path = join(data_dir, "pdfs/%s/%s/content.pdf" % (car, person))
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
-    wk_retcode = sp.call('wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path))
-    if wk_retcode != 0:
-        return response(code='2', message='[render_html] Failed to convert HTML to PDF')
+    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_file_path, output_file_path)
+    # print(execute)
+    sp.Popen(execute, shell=True)
+
+    # wk_retcode = sp.call(execute, shell=True)
+    # if wk_retcode != 0:
+    #     return response(code='2', message='[render_html] Failed to convert HTML to PDF')
     # This function needs to call wkhtmltopdf with the HTML content in the POST
     # variable 'html_content'.  The wkhtmltopdf code will take the html file
     # and render it to PDF.  Then, the file needs to be sent to a printer by some

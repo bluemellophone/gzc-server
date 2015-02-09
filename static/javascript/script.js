@@ -32,75 +32,28 @@ function removeFromArray(value, array)
     }
 }
 
-function submitPDF(nonce)
+function submitPDF(car, person)
 {
     var documents = {};
-    $('.printarea-document').not('.no-email-address').each(function( index, element ) {
-        var mail = $(element).attr('email-mail');
-        var attachment = $(element).attr('email-attachment');
-        if(mail != "" && attachment != "")
-        {
-        console.log("PROCESSING PRINTAREA " + mail + " " + attachment);
-            content = '<head>' + $('head').html() + '</head><body><div class="printarea">' + $(element).html() + '</div></body>';
-            documents['content-' + mail + '-' + attachment] = content;
-//          documents['content-' + mail + '-' + attachment] = '';
-            documents['email-' + mail + '-' + attachment] = $(element).attr('email-address');
-            documents['name-' + mail + '-' + attachment] = $(element).attr('email-name');
-            documents['cc-emails-' + mail + '-' + attachment] = $(element).attr('cc-email-addresses');
-            documents['type-' + mail + '-' + attachment] = $(element).attr('email-type');
-            documents['orderid-' + mail + '-' + attachment] = $(element).attr('order-id');
-            documents['entityid-' + mail + '-' + attachment] = $(element).attr('entity-id');
-            documents['filename-' + mail + '-' + attachment] = $(element).attr('email-attachment-filename');
-        }
-    });
-    
-    $('.printarea-document-attachment').not('.no-email-address').each(function( index, element ) {
-        var mail = $(element).attr('email-mail');
-        var attachment = $(element).attr('email-attachment');
-        if(mail != "" && attachment != "")
-        {
-            documents['content-' + mail + '-' + attachment] = $(element).attr('email-attachment-source');
-            documents['email-' + mail + '-' + attachment] = $(element).attr('email-address');
-            documents['name-' + mail + '-' + attachment] = $(element).attr('email-name');
-            documents['type-' + mail + '-' + attachment] = $(element).attr('email-type');
-            documents['orderid-' + mail + '-' + attachment] = $(element).attr('order-id');
-            documents['filename-' + mail + '-' + attachment] = $(element).attr('email-attachment-filename');
-        }
+    $('.printarea-document').each(function( index, element ) {
+        console.log("PROCESSING PRINTAREA");
+        documents['head_content'] = $('head').html();
+        documents['html_content'] = $(element).html();
     });
 
     if(Object.keys(documents).length > 0)
-    { 
-//      console.log("SENT: " + JSON.stringify(documents));
-        $('.sending-overlay-notice').css('visibility', 'visible');
-        disable_scroll();
-        temp = document.title.split(" - ");
-        if(temp.length == 2)
-        {
-        document.title = temp[1];   
-        }
-        document.title = "Sending - " + document.title;
-        
+    {   
+        console.log("SENDING");
         $.ajax({
-          type: "POST",
-          url: '/account/account-pdf.php?nonce=' + nonce,
-          data: documents,
+            type: "POST",
+            url: '/render/' + car + '/' + person,
+            data: documents,
         })
         .done(function(response) {
-            $('.sending-overlay-notice').css('visibility', 'hidden');
-            enable_scroll();
-        temp = document.title.split(" - ");
-        if(temp.length == 2)
-        {
-        document.title = temp[1];   
-        }
-        document.title = "Sent - " + document.title;
-/*          console.log("RESPONSE: " + response); */
+            console.log("SENT");
         })
         .fail(function(response) { 
-            alert("FAILURE GENERATING PDF FILE - " + JSON.stringify(response));
-            $('.sending-overlay-notice').css('visibility', 'hidden');
-            enable_scroll();
-        document.title = "Failed - ADK Scheduler";
+            console.log("ERROR");
         });
     }
 }

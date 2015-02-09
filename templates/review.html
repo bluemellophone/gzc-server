@@ -121,14 +121,12 @@
                     $("#analysis-" + analysis + " div span.glyphicon").animate({ color: "#d9534f", }, 200).delay(200).animate({ color: "#333", }, 200);;
                 }
 
-                if(selected.length == 3)
+                if(selected.length >= 1)
                 {
-                    console.log("ENABLED");
                     $("#send-button").removeAttr('disabled');
                 }
                 else
                 {
-                    console.log("DISABLED");
                     $("#send-button").attr('disabled','disabled'); 
                 }
             }
@@ -170,7 +168,7 @@
                     {% endfor %}
                 </div>
                 <div class="send-container">
-                    <a onclick="updateCandidates();" class="btn btn-xl btn-primary" id="send-button" disabled="disabled">PRINT</a>
+                    <a onclick="submitPDF('{{ car_str }}', '{{ person }}');" class="btn btn-xl btn-primary" id="send-button" disabled="disabled">PRINT</a>
                 </div>
             </div>
 
