@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import sys
 import time
 import ibeis
 import analyze
@@ -10,38 +11,27 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
 import multiprocessing
-import multiprocessing.pool
 
 from os import walk, mkdir
 from os.path import join, split, splitext, isfile, exists, realpath
 
 from utool import IMG_EXTENSIONS
 
+ibeis._preload()
 
-# ibs needs to be global so it may be shared among processes
-ibs = ibeis.opendb('testdb1')
+
+ibs = ibeis.opendb('PZ_MTEST')
 daid_list = ibs.get_valid_aids(is_exemplar=True)
 qreq = ibs.new_query_request([], daid_list)
-
-
-# need to write our own non-daemonic Pool so that pyrf may create its own processes
-# http://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-class NoDaemonProcess(multiprocessing.Process):
-    def _get_daemon(self):
-        return False
-    def _set_daemon(self, value):
-        pass
-    daemon = property(_get_daemon, _set_daemon)
-
-
-# this is our custom, non-daemonic Pool
-class NonDaemonicPool(multiprocessing.pool.Pool):
-    Process = NoDaemonProcess
 
 
 class NewImageHandler(PatternMatchingEventHandler):
     # we only want to check for new image files
     patterns = ['*%s' % ext for ext in IMG_EXTENSIONS]
+
+    def __init__(self, queue):
+        self.queue = queue
+        super(NewImageHandler, self).__init__()
 
     def process(self, event):
         """
@@ -53,9 +43,11 @@ class NewImageHandler(PatternMatchingEventHandler):
             path/to/observed/file
         """
         # need to sleep to give the OS time to finish writing the file
-        time.sleep(1)
-        pool.apply_async(process_image, args=[event.src_path], callback=done_processing)
-        print('file: %s, event: %s' % (event.src_path, event.event_type))
+        # TODO: how long should this wait be?
+        time.sleep(5)
+        full_path = realpath(event.src_path)
+        print('file: %s, event: %s' % (full_path, event.event_type))
+        self.queue.put(full_path)
 
 #    def on_modified(self, event):
 #        self.process(event)
@@ -66,16 +58,16 @@ class NewImageHandler(PatternMatchingEventHandler):
 
 def process_image(fname):
     print('received request: %s' % (fname))
-#    time.sleep(3) # fake processing the request
-    analyze.analyze(ibs, qreq, fname)
-    return fname
+#    time.sleep(10) # fake processing the request
+    try:
+        analyze.analyze(ibs, qreq, fname)
+        print('request completed')
+        return fname
+    except Exception:
+        return sys.exc_info()
 
 
-def done_processing(fname):
-    print('request completed: %s' % (fname))
-
-
-def recover_state(pool, data_dir, results_dir):
+def recover_state(queue, data_dir, results_dir):
     # first get all files in the data directory
     input_files = []
     for root, dirnames, filenames in walk(path_to_watch):
@@ -102,7 +94,7 @@ def recover_state(pool, data_dir, results_dir):
         # if the either the json file does't exist or no match file is found, re-analyze this file
         if not isfile(file_to_check_json) or True not in files_to_check_match_existence:
             print('the file %s has to be analyzed' % (realpath(filepath_full)))
-            pool.apply_async(process_image, args=[realpath(filepath_full)], callback=done_processing)
+            queue.put(realpath(filepath_full))
 
 
 if __name__ == '__main__':
@@ -116,21 +108,31 @@ if __name__ == '__main__':
     if not exists(images_dir):
         mkdir(images_dir)
 
-    # instantiate an asynchronous process to analyze images
-    pool = NonDaemonicPool(processes=1)
-
-    # need to check if any files were written while the observer was offline
-    recover_state(pool, path_to_watch, results_dir)
+    queue = multiprocessing.Queue()
 
     # create the file observer that will watch for new files
     observer = Observer()
-    observer.schedule(NewImageHandler(), path=path_to_watch, recursive=True)
+    observer.schedule(NewImageHandler(queue), path=path_to_watch, recursive=True)
     observer.start()
+
+    if observer.isAlive():
+        print('\n\n***** OBSERVER IS LIVE *****\n\n')
+    else:
+        print('the observer failed to start!')
+        exit(1)
+
+    print('attempting to recover state...')
+    recover_state(queue, path_to_watch, results_dir)
 
     try:
         while True:
             time.sleep(1)
-            print('listening...')
+            print('queue size: %d' % (queue.qsize()))
+            if not queue.empty():
+                result = process_image(queue.get())
+                if isinstance(result, tuple):
+                    type_, ex, tb = result
+                    raise type_, ex, tb
     except KeyboardInterrupt:
         print('observer shutting down!')
         observer.stop()

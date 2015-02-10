@@ -16,7 +16,7 @@ import numpy as np
 from vtool import geometry
 from utool import IMG_EXTENSIONS
 
-from os.path import join, exists, isfile, realpath, split, basename, splitext  # NOQA
+from os.path import join, exists, isfile, isdir, realpath, split, basename, splitext  # NOQA
 from os import mkdir, listdir
 
 from shutil import copy  # NOQA
@@ -26,7 +26,7 @@ DEFAULT_DATA_DIR = 'data'
 SERVER_IP_ADDRESS = '127.0.0.1'
 SERVER_PORT = 5000
 
-FRACTION_FOR_REVIEW = 0.8  # fraction of the input images for whichgenerated results are required
+FRACTION_FOR_REVIEW = 0.8  # fraction of the input images for which generated results are required
 MINIMUM_FOR_REVIEW = 5  # minimum number of results required
 
 
@@ -89,27 +89,29 @@ def analyze(ibs, qreq_, path_to_file):
         mkdir(animal_dir)
         print('creating directory %s' % (animal_dir))
 
-    gid_list = ibs.add_images([path_to_file])
+    gid_list = ibs.add_images([path_to_file], auto_localize=False)
     original_gid = gid_list[0]
-    print('starting detection for image %s and species %s' % (path_to_file, species))
+    print('starting detection for image %s and species %s...' % (path_to_file, species))
     aids_list = ibs.detect_random_forest(gid_list, species=species)
     qaid_list = utool.flatten(aids_list)
+    print('detected %d animals of species %s' % (len(qaid_list), species))
 
     # so that we can draw a new bounding box for each detection
     img_orig = cv2.imread(path_to_file)
     detection_bbox_list = ibs.get_annot_verts(qaid_list)
 
-    # daid_list = ibs.get_valid_aids(is_exemplar=True)
-    # qreq should be a property of the - a persistent query request
-    #qreq_ = ibs.new_query_request(qaid_list, daid_list)
+    # because qreq_ is persistent we need only to update the qaid_list
     qreq_.set_external_qaids(qaid_list)
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=False)
     #qres_list = ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
 
     fname_base, fname_ext = splitext(fname)
     for (qx, qres), bbox in zip(enumerate(qres_list), detection_bbox_list):
+        print('processing detection %d:' % (qx))
         aid = qres.get_top_aids(num=1)
-        qres.dump_top_match(ibs, fpath_strict=join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx)), vert=False, draw_border=False)
+        correspondences_file = join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx))
+        print('writing correspondences to %s' % (correspondences_file))
+        qres.dump_top_match(ibs, fpath_strict=correspondences_file, vert=False, draw_border=False)
 
         gid_list = ibs.get_annot_gids(aid)
         match_aid = aid
@@ -120,14 +122,18 @@ def analyze(ibs, qreq_, path_to_file):
         verts = ibs.get_annot_verts(aid)[0]
         img_match = geometry.draw_verts(img_match, verts)
         img_match = resize_img_by_smaller_dimension(img_match, 512)
-        cv2.imwrite(join(animal_dir, '%s_%d_match.jpg' % (fname_base, qx)), img_match)
+        bbox_file = join(animal_dir, '%s_%d_match.jpg' % (fname_base, qx))
+        print('writing image match with bounding box to %s' % (bbox_file))
+        cv2.imwrite(bbox_file, img_match)
 
         # draw the bounding box on the detection in the original image
         img_orig_bbox = geometry.draw_verts(img_orig, bbox)
         img_orig_bbox = resize_img_by_smaller_dimension(img_orig_bbox, 512)
-        cv2.imwrite(join(animal_dir, '%s_%d_original.jpg' % (fname_base, qx)), img_orig_bbox)
+        orig_file = join(animal_dir, '%s_%d_original.jpg' % (fname_base, qx))
+        print('writing original image with bounding box to %s' % (orig_file))
+        cv2.imwrite(orig_file, img_orig_bbox)
 
-        # get intesting information about the query animal
+        # get interesting information about the query animal
         information = {
             'original_image_path':     ibs.get_image_paths(original_gid),
             'original_image_gname':    ibs.get_image_gnames(original_gid),
@@ -143,7 +149,9 @@ def analyze(ibs, qreq_, path_to_file):
             'match_annot_species':     ibs.get_annot_species(match_aid),
             'match_annot_viewpoint':   ibs.get_annot_viewpoints(match_aid),
         }
-        with open(join(animal_dir, '%s_%d_data.json' % (fname_base, qx)), 'w') as ofile:
+        json_file = join(animal_dir, '%s_%d_data.json' % (fname_base, qx))
+        print('writing information file to %s' % (json_file))
+        with open(json_file, 'w') as ofile:
             json.dump(information, ofile)
 
         # write the detection confidence(s) for this image to the json file
@@ -153,10 +161,12 @@ def analyze(ibs, qreq_, path_to_file):
         confidences_file = join(animal_dir, 'confidences.json')
         # check if this is the first detection for this person
         if not isfile(confidences_file):
+            print('creating new confidences file: %s' % (confidences_file))
             with open(confidences_file, 'w') as ofile:
                 json.dump(confidence, ofile)
         # update the existing json file
         else:
+            print('updating existing confidences file: %s' % (confidences_file))
             with open(confidences_file, 'r') as ifile:
                 data = json.load(ifile)
             data.update(confidence)
@@ -166,13 +176,32 @@ def analyze(ibs, qreq_, path_to_file):
         # we need to count how many input files we have received and how many output files have been generated, so that we know if we can send a review request for this directory
 
         # only count files of image types
-        num_input_giraffes = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'images', car, person, 'giraffe')) if f.endswith(tuple(IMG_EXTENSIONS))])
+        giraffe_input_dir = join(DEFAULT_DATA_DIR, 'images', car, person, 'giraffe')
+        # perhaps this person never submitted a giraffe
+        if isdir(giraffe_input_dir):
+            num_input_giraffes = len([f for f in listdir(giraffe_input_dir) if f.endswith(tuple(IMG_EXTENSIONS))])
+        else:
+            num_input_giraffes = 0
 
-        num_input_zebras = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'images', car, person, 'zebra')) if f.endswith(tuple(IMG_EXTENSIONS))])
+        zebra_input_dir = join(DEFAULT_DATA_DIR, 'images', car, person, 'zebra')
+        if isdir(zebra_input_dir):
+            num_input_zebras = len([f for f in listdir(zebra_input_dir) if f.endswith(tuple(IMG_EXTENSIONS))])
+        else:
+            num_input_zebras = 0
 
         # only count files of json type
-        num_output_giraffes = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')) if f.endswith('.json')])
-        num_output_zebras = len([f for f in listdir(join(DEFAULT_DATA_DIR, 'analysis', car, person, 'zebra')) if f.endswith('.json')])
+        giraffe_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')
+        # perhaps no giraffes have been generated as output yet
+        if isdir(giraffe_output_dir):
+            num_output_giraffes = len([f for f in listdir(giraffe_output_dir) if f.endswith('.json')])
+        else:
+            num_output_giraffes = 0
+
+        zebra_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'zebra')
+        if isdir(zebra_output_dir):
+            num_output_zebras = len([f for f in listdir(zebra_output_dir) if f.endswith('.json')])
+        else:
+            num_output_zebras = 0
 
         # compute the sum (subtract one for confidences.json)
         num_input = num_input_giraffes + num_input_zebras
