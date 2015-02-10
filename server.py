@@ -13,10 +13,11 @@ import simplejson as json
 import optparse
 import logging
 # Other
-from os.path import join, exists
+from os.path import join, exists, isdir, realpath
 import utool as ut
 import operator
 import zipfile
+import shutil
 
 
 ################################################################################
@@ -141,8 +142,16 @@ def images():
     car_number    = request.form['car_number'].lower()
     person        = request.form['person_letter'].lower()
     image_archive = request.files['image_archive']
+
+    # If the directory already exists, delete it
+    new_dir = realpath(join(DEFAULT_DATA_DIR, 'images', car_number + car_color, person))
+    if isdir(new_dir):
+        print('%s already exists, deleting' % new_dir)
+        shutil.rmtree(new_dir)
+
     # Ensure the folder
     person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'images', car_number, car_color, person)
+
     # Extract the content
     with zipfile.ZipFile(image_archive, 'r') as zfile:
         zfile.extractall(person_dir)
