@@ -228,7 +228,7 @@ if __name__ == '__main__':
     parser.add_option(
         '--db',
         help='specify an IBEIS database',
-        type='str', default='testdb1')
+        type='str', default='PZ_MTEST')
 
     opts, args = parser.parse_args()
 

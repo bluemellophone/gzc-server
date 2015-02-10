@@ -127,7 +127,7 @@ if __name__ == '__main__':
     try:
         while True:
             time.sleep(1)
-            print('queue size: %d' % (queue.qsize()))
+            # print('queue size: %d' % (queue.qsize()))
             if not queue.empty():
                 result = process_image(queue.get())
                 if isinstance(result, tuple):

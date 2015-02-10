@@ -271,6 +271,18 @@ a[href^="http://maps.google.com/maps"]
   background:none !important;
 }
 
+.us-letter
+{
+  width:773px; 
+  height:1000px; 
+}
+
+.a4-letter
+{
+  width:773px; 
+  height:1093px; 
+}
+
 /* Printing */
 @media print 
 {
