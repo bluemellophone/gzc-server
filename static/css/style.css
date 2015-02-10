@@ -110,6 +110,7 @@ html,body {
 .analysis-image-correspondences img
 {
   height: 100%;
+  width: 100%;
 }
 
 .candidate 

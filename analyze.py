@@ -112,7 +112,7 @@ def analyze(ibs, qreq_, path_to_file):
 
         correspondences_file = join(animal_dir, '%s_%d_correspondences.jpg' % (fname_base, qx))
         print('writing correspondences to %s' % (correspondences_file))
-        qres.dump_top_match(ibs, fpath_strict=correspondences_file, vert=False, draw_border=False)
+        qres.dump_top_match(ibs, fpath_strict=correspondences_file, vert=False, draw_border=False, saveax=True)
 
         gid_list = ibs.get_annot_gids(aid)
         match_aid = aid[0]
