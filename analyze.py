@@ -96,6 +96,10 @@ def analyze(ibs, qreq_, path_to_file):
     qaid_list = utool.flatten(aids_list)
     print('detected %d animals of species %s' % (len(qaid_list), species))
 
+    # if there were no detections, don't bother
+    if not qaid_list:
+        return
+
     # so that we can draw a new bounding box for each detection
     img_orig = cv2.imread(path_to_file)
     detection_bbox_list = ibs.get_annot_verts(qaid_list)
@@ -124,15 +128,15 @@ def analyze(ibs, qreq_, path_to_file):
         img_match = geometry.draw_verts(img_match, verts)
         img_match = resize_img_by_smaller_dimension(img_match, 512)
         bbox_file = join(animal_dir, '%s_%d_match.jpg' % (fname_base, qx))
-        print('writing image match with bounding box to %s' % (bbox_file))
-        cv2.imwrite(bbox_file, img_match)
+        status = cv2.imwrite(bbox_file, img_match)
+        print('writing image match with bounding box to %s (success = %s)' % (bbox_file, status))
 
         # draw the bounding box on the detection in the original image
         img_orig_bbox = geometry.draw_verts(img_orig, bbox)
         img_orig_bbox = resize_img_by_smaller_dimension(img_orig_bbox, 512)
         orig_file = join(animal_dir, '%s_%d_original.jpg' % (fname_base, qx))
-        print('writing original image with bounding box to %s' % (orig_file))
-        cv2.imwrite(orig_file, img_orig_bbox)
+        status = cv2.imwrite(orig_file, img_orig_bbox)
+        print('writing original image with bounding box to %s (success = %s)' % (orig_file, status))
 
         # get interesting information about the query animal
         information = {

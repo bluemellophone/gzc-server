@@ -17,6 +17,10 @@ from os.path import join, split, splitext, isfile, exists, realpath
 
 from utool import IMG_EXTENSIONS
 
+# TODO: how long should this wait be?
+# how long should the watchdog wait before it assumes a new file is fully written?
+FILE_CREATION_WAIT = 5
+
 ibeis._preload()
 
 
@@ -42,11 +46,12 @@ class NewImageHandler(PatternMatchingEventHandler):
         event.src_path
             path/to/observed/file
         """
-        # need to sleep to give the OS time to finish writing the file
-        # TODO: how long should this wait be?
-        time.sleep(5)
         full_path = realpath(event.src_path)
         print('file: %s, event: %s' % (full_path, event.event_type))
+        print('giving the OS %d seconds to finish writing the file %s' % (FILE_CREATION_WAIT, full_path))
+        # need to sleep to give the OS time to finish writing the file
+        # note that new files will still be detected!!!
+        time.sleep(FILE_CREATION_WAIT)
         self.queue.put(full_path)
 
 #    def on_modified(self, event):
@@ -61,7 +66,7 @@ def process_image(fname):
 #    time.sleep(10) # fake processing the request
     try:
         analyze.analyze(ibs, qreq, fname)
-        print('request completed')
+        print('request completed: %s' % (fname))
         return fname
     except Exception:
         return sys.exc_info()
@@ -81,6 +86,7 @@ def recover_state(queue, data_dir, results_dir):
     input_files_cleaned = [text.replace(data_dir, '')[1:] for text in input_files]
 
     # for all the input files, check if the corresponding json file exists
+    num_recovered = 0
     for filepath_clean, filepath_full in zip(input_files_cleaned, input_files):
         path, ext = splitext(filepath_clean)
 
@@ -95,6 +101,9 @@ def recover_state(queue, data_dir, results_dir):
         if not isfile(file_to_check_json) or True not in files_to_check_match_existence:
             print('the file %s has to be analyzed' % (realpath(filepath_full)))
             queue.put(realpath(filepath_full))
+            num_recovered += 1
+
+    return num_recovered
 
 
 if __name__ == '__main__':
@@ -121,9 +130,13 @@ if __name__ == '__main__':
         print('the observer failed to start!')
         exit(1)
 
+    # check if there are input images without results
     print('attempting to recover state...')
-    recover_state(queue, path_to_watch, results_dir)
+    num_recovered = recover_state(queue, path_to_watch, results_dir)
+    print('found %d file(s) that are missing results to add to the queue' % (num_recovered))
+    print('observer is now monitoring %s for new files' % (path_to_watch))
 
+    # process new images as the observer puts them in the queue
     try:
         while True:
             time.sleep(1)
@@ -133,6 +146,8 @@ if __name__ == '__main__':
                 if isinstance(result, tuple):
                     type_, ex, tb = result
                     raise type_, ex, tb
+                else:
+                    print('observer is still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s)' % (path_to_watch, observer.isAlive(), queue.empty()))
     except KeyboardInterrupt:
         print('observer shutting down!')
         observer.stop()
