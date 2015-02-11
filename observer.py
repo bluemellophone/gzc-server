@@ -25,8 +25,13 @@ ibeis._preload()
 
 
 ibs = ibeis.opendb('PZ_MTEST')
-daid_list = ibs.get_valid_aids(is_exemplar=True)
-qreq = ibs.new_query_request([], daid_list)
+daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.ZEB_PLAIN)
+daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.GIRAFFE)
+
+qreq_zebra = ibs.new_query_request([], daid_list_zebra)
+qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
+
+qreq = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
 
 
 class NewImageHandler(PatternMatchingEventHandler):

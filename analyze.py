@@ -46,7 +46,7 @@ def resize_img_by_smaller_dimension(img_in, new_size):
     return img_out
 
 
-def analyze(ibs, qreq_, path_to_file):
+def analyze(ibs, qreq_dict, path_to_file):
     # decompose the path to get the animal type, person letter, and car information
     animal_path, fname = split(path_to_file)
     person_path, animal = split(animal_path)
@@ -105,6 +105,7 @@ def analyze(ibs, qreq_, path_to_file):
     detection_bbox_list = ibs.get_annot_verts(qaid_list)
 
     # because qreq_ is persistent we need only to update the qaid_list
+    qreq_ = qreq_dict[animal]  # there is a qreq_ for each species
     qreq_.set_external_qaids(qaid_list)
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=False)
     #qres_list = ibs.query_chips(aid_list, daid_list, qreq_=None, verbose=False)
