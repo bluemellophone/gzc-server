@@ -25,6 +25,8 @@ ibeis._preload()
 
 
 ibs = ibeis.opendb('PZ_MTEST')
+
+# build the query request objects for zebras and giraffes
 daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.ZEB_PLAIN)
 daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.GIRAFFE)
 
@@ -150,7 +152,11 @@ if __name__ == '__main__':
                 result = process_image(queue.get())
                 if isinstance(result, tuple):
                     type_, ex, tb = result
-                    raise type_, ex, tb
+                    print('\n\n***** EXCEPTION *****\n\n')
+                    print('type_ = %r' % (type_))
+                    print('ex = %r' % (ex))
+                    print('tb = %r' % (tb))
+                    #raise type_, ex, tb
                 else:
                     print('observer is still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s)' % (path_to_watch, observer.isAlive(), queue.empty()))
     except KeyboardInterrupt:
