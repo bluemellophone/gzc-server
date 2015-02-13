@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
 # HTTP / HTML
 import flask
+from flask import request
 # Web Internal
 import xml.etree.ElementTree as ET
 import simplejson as json
 import cStringIO as StringIO
-import navbar
 # Image
 from PIL import Image
 import numpy as np
@@ -15,6 +15,20 @@ from os.path import join, exists
 from datetime import datetime, date
 import time
 import re
+
+
+class NavbarClass(object):
+    def __init__(nav):
+        nav.item_list = [
+            ('',     'Home'),
+            ('images/form', 'Images'),
+            ('gps/form',  'GPS'),
+        ]
+
+    def __iter__(nav):
+        _link = request.path.strip('/').split('/')
+        for link, nice in nav.item_list:
+            yield link == _link[0], link, nice
 
 
 ORIENTATIONS = {   # used in apply_orientation
@@ -29,7 +43,7 @@ ORIENTATIONS = {   # used in apply_orientation
 
 
 global_args = {
-    'NAVBAR': navbar.NavbarClass(),
+    'NAVBAR': NavbarClass(),
     'YEAR':   date.today().year,
 }
 
