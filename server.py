@@ -212,14 +212,16 @@ def render_html(car, person):
             <html>'
             ''' % (head_content, printable, html_content)
             content = content.replace('/static/', request.url_root + 'static/')
+            content = content.replace('<script src="https://maps.gstatic.com/maps-api-v3/api/js/19/10/main.js"></script>', '')  # Fix for JavaScript Google Maps
             content = content.encode('utf-8')
             html_file.write(content)
     except IOError as ioe:
         return sf.response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
     # Render content.html with wkhtmltopdf to content.pdf
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
-    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --zoom 1.1 %s %s' % (input_path, output_path)
-    # print(execute)
+    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
+    # execute = 'wkhtmltopdf -s A4 -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
+    print(execute)
     sp.Popen(execute, shell=True)
     # Return nice response
     return sf.response()
