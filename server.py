@@ -81,12 +81,21 @@ def review(car, person):
     car_str, car_number, car_color, person = sf.process_person(car, person)
     # Build analysis list
     valid = False
-    analysis_list = []
+    analysis_dict = {}
+    analysis_dict[person] = None
     gps_path = 'data/gps/%s/track.json' % (car_str, )
+    # Get GPS url
     gps_url = url_for('static', filename=gps_path)
-    if exists(gps_path):
-        # Get GPS url
-        # Get analysis
+
+    # Find friends
+    for friend in PERSON_LETTERS:
+        friend_path = join('data', 'analysis', car_str, friend)
+        if isdir(friend_path):
+            analysis_dict[friend] = None
+
+    # Get analysis for person and friends
+    for letter in analysis_dict.keys():
+        analysis_list = []
         for species in ['zebra', 'giraffe']:
             analysis_path = join('data', 'analysis', car_str, person, species)
             confidence_path = join(analysis_path, 'confidences.json')
@@ -114,14 +123,16 @@ def review(car, person):
                     analysis_list.append(analysis)
             else:
                 print('ERROR: %s has no analysis' % (analysis_path, ))
-        # Set valid flag
-        if len(analysis_list) >= 1:
-            valid = True
+        analysis_dict[letter] = analysis_list
+    # Set valid flag
+    if exists(gps_path) and len(analysis_dict[person]) >= 1:
+        valid = True
+    # Set valid if override
     if 'override' in request.args:
         valid = True
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person, gps_url=gps_url,
-                       analysis_list=analysis_list, valid=valid)
+                       analysis_dict=analysis_dict, valid=valid)
 
 
 @app.route('/print/<car>/<person>')
@@ -150,6 +161,7 @@ def print_pdf(car, person):
 @app.route('/images/submit', methods=['POST'])
 def images():
     # Process images for car and person
+    extra = {}
     car_color     = request.form.get('car_color', '').lower()
     car_number    = request.form.get('car_number', '').lower()
     person        = request.form.get('person_letter', '').lower()
@@ -178,6 +190,7 @@ def images():
     if isdir(new_dir):
         print('Reprocessing Images for (%s, %s, %s) because %s already exists, deleting old submission' % (car_number, car_color, person, new_dir, ))
         shutil.rmtree(new_dir)
+        extra['overwritten'] = True
 
     # Ensure the folder
     person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'images', car_number, car_color, person)
@@ -187,7 +200,7 @@ def images():
         with zipfile.ZipFile(image_archive, 'r') as zfile:
             zfile.extractall(person_dir)
     except Exception as e:
-        return sf.response(100, '[images] Could not write ZIP file: %r' % (e, ))
+        return sf.response(100, '[images] Could not write ZIP file: %r' % (e, ), **extra)
 
     # Error checking for files
     try:
@@ -205,7 +218,7 @@ def images():
             message = 'Image "last.jpg" does not exist'
             raise ValueError
     except Exception as e:
-        return sf.response(106, '[images] %s: %r' % (message, e, ))
+        return sf.response(106, '[images] %s: %r' % (message, e, ), **extra)
 
     # Capture offset from first image to today and reported time
     reported_time = vt.parse_exif_unixtime(join(person_dir, 'first.jpg'))
@@ -220,12 +233,13 @@ def images():
         json.dump({ 'offset': offset }, ofile)
 
     # Return nice response
-    return sf.response()
+    return sf.response(**extra)
 
 
 @app.route('/gps/submit', methods=['POST'])
 def gps():
     # Process gps for car
+    extra = {}
     car_color   = request.form.get('car_color', '').lower()
     car_number  = request.form.get('car_number', '').lower()
     time_hour   = request.form.get('gps_first_time_hour', '')
@@ -251,6 +265,7 @@ def gps():
     if isdir(new_dir):
         print('Reprocessing GPS for (%s, %s) because %s already exists, deleting old submission' % (car_number, car_color, new_dir, ))
         shutil.rmtree(new_dir)
+        extra['overwritten'] = True
 
     # Ensure the folder
     car_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'gps', car_number, car_color)
@@ -261,7 +276,7 @@ def gps():
     try:
         gps_data.save(input_path)
     except Exception as e:
-        return sf.response(200, '[gps] Could not write GPX file: %r' % (e, ))
+        return sf.response(200, '[gps] Could not write GPX file: %r' % (e, ), **extra)
 
     # Convert the gpx file to json for javascript to be able to read it
     with open(input_path, 'r') as gpx_file:
@@ -270,11 +285,11 @@ def gps():
             try:
                 json_content = sf.convert_gpx_to_json(gpx_content)
             except Exception as e:
-                return sf.response(207, '[gps] Could not parse GPX file: %r' % (e, ))
+                return sf.response(207, '[gps] Could not parse GPX file: %r' % (e, ), **extra)
             json_file.write(json_content)
 
     # Return nice response
-    return sf.response()
+    return sf.response(**extra)
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])

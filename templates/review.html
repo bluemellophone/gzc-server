@@ -20,25 +20,30 @@
             $( document ).ready( function() {
                 
                 var gps_url = "{{ gps_url }}";
-                $.getJSON(gps_url, function( data ) {
-                    var last = undefined;
-                    $.each( data.track, function( key, marker ) {
-                        if(last === undefined)
-                        {
-                            last = marker.time;
-                            console.log("TRACK FIRST: " + last);
-                        }
-                        else
-                        {
-                            last = marker.time;   
-                        }
-                        track[last] = [marker.lat, marker.lon];
+                $.getJSON(gps_url)
+                    .success(function( data ) {
+                        var last = undefined;
+                        $.each( data.track, function( key, marker ) {
+                            if(last === undefined)
+                            {
+                                last = marker.time;
+                                console.log("TRACK FIRST: " + last);
+                            }
+                            else
+                            {
+                                last = marker.time;   
+                            }
+                            track[last] = [marker.lat, marker.lon];
 
+                        });
+                        console.log("TRACK LAST: " + last);
+
+                        updateCandidates();
+                    })
+                    .error(function() { 
+                        updateCandidates();
                     });
-                    console.log("TRACK LAST: " + last);
-
-                    updateCandidates();
-                });
+                
 
                 $(".analysis-image-hover").mouseenter(function() {
                     analysis = $(this).attr("analysis");       
@@ -82,6 +87,7 @@
                         var analysis = $("#analysis-" + candidate);
                         var metadata_time = analysis.attr("metadata-original-image-unixtime");
                         metadata_time = Number.parseFloat(metadata_time);
+                        console.log(candidate + " " + metadata_time);
                         var close = findClosestTime(metadata_time);
                         markers[i] = track[close];
 
@@ -166,6 +172,14 @@
                 $("#javascript-renderMap-container").append('renderMap();');
                 submitPDF(car, person);
             }
+
+            function clearSelected()
+            {
+                selected = new Array();
+                updateCandidates();
+                $(".analysis").removeClass('analysis-selected');
+                $(".analysis div span.glyphicon").addClass('glyphicon-heart-empty');
+            }
         </script>
 
         <style type="text/css">
@@ -177,31 +191,53 @@
 
         <div class="row" id="splitter">
             <div class="col-md-6" id="content-left" style="padding-left: 50px;">
-                <div class="analysis-container">
-                    {% for (i, correspondences, original, match, metadata) in analysis_list %}
-                        <div class="row analysis" id="analysis-{{ i }}" onclick="toggleAnalysis({{ i }});" analysis="{{ i }}" {{ metadata }}>                  
-                            <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ i }}">
-                                <img src="{{ correspondences }}" />
-                            </div>   
-                            <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-original" id="analysis-image-original-{{ i }}">
-                                <img src="{{ original }}" />
-                            </div>
-                            <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-match" id="analysis-image-match-{{ i }}">
-                                <img src="{{ match }}" />
-                            </div>
-                            <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover" id="analysis-image-hover-{{ i }}" analysis="{{ i }}">
-                                <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
-    <!--                        
-                                <br/>
-                                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-                                <br/>
-                                <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
-                                <br/>
-                                <span class="glyphicon glyphicon-barcode" aria-hidden="true"></span> 
-    -->
-                            </div>   
-                        </div>
+                <ul class="nav nav-tabs" role="tablist">
+                    {% for letter in analysis_dict.keys() %}
+                        {% if letter == person %}
+                            <li role="presentation" class="active"><a href="#person-{{ letter }}" aria-controls="person-{{ letter }}" role="tab" data-toggle="tab">{{ letter }}</a></li>
+                        {% else %}
+                            <li role="presentation"><a href="#person-{{ letter }}" aria-controls="person-{{ letter }}" role="tab" data-toggle="tab">{{ letter }}</a></li>
+                        {% endif %}
                     {% endfor %}
+                </ul>
+                <div>
+                    <a onclick="clearSelected();" class="btn btn-danger" style="position: absolute; top: 0px; right: 0px; margin-right: 15px;">CLEAR</a>
+                </div>
+                <div class="tab-content">
+                {% for letter in analysis_dict.keys() %}
+                    {% if letter == person %}
+                        <div role="tabpanel" class="tab-pane active" id="person-{{ letter }}">
+                    {% else %}
+                        <div role="tabpanel" class="tab-pane" id="person-{{ letter }}">
+                    {% endif %}
+                        <div class="analysis-container">
+                            {% for (i, correspondences, original, match, metadata) in analysis_dict[letter] %}
+                                <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" onclick="toggleAnalysis('{{ letter }}-{{ i }}');" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
+                                    <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ letter }}-{{ i }}">
+                                        <img src="{{ correspondences }}" />
+                                    </div>   
+                                    <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-original" id="analysis-image-original-{{ letter }}-{{ i }}">
+                                        <img src="{{ original }}" />
+                                    </div>
+                                    <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-match" id="analysis-image-match-{{ letter }}-{{ i }}">
+                                        <img src="{{ match }}" />
+                                    </div>
+                                    <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover" id="analysis-image-hover-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}">
+                                        <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
+            <!--                        
+                                        <br/>
+                                        <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                        <br/>
+                                        <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
+                                        <br/>
+                                        <span class="glyphicon glyphicon-barcode" aria-hidden="true"></span> 
+            -->
+                                    </div>   
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
                 </div>
                 <div class="send-container">
                     <a onclick="preSubmitPDF('{{ car_str }}', '{{ person }}');" class="btn btn-xl btn-primary" id="send-button" disabled="disabled">PRINT</a>
