@@ -103,7 +103,7 @@ def analyze(ibs, qreq_dict, path_to_file):
     actual_unixtime_list = [ reported_unixtime + offset for reported_unixtime in reported_unixtime_list ]
     print(reported_unixtime_list)
     print(actual_unixtime_list)
-    # ibs.set_image_unixtime(gid_list, actual_unixtime_list)
+    ibs.set_image_unixtime(gid_list, actual_unixtime_list)
 
     ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list)
     original_gid = gid_list[0]

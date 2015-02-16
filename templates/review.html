@@ -21,9 +21,22 @@
                 
                 var gps_url = "{{ gps_url }}";
                 $.getJSON(gps_url, function( data ) {
+                    var last = undefined;
                     $.each( data.track, function( key, marker ) {
-                        track[marker.time] = [marker.lat, marker.lon];
+                        if(last === undefined)
+                        {
+                            last = marker.time;
+                            console.log("TRACK FIRST: " + last);
+                        }
+                        else
+                        {
+                            last = marker.time;   
+                        }
+                        track[last] = [marker.lat, marker.lon];
+
                     });
+                    console.log("TRACK LAST: " + last);
+
                     updateCandidates();
                 });
 
@@ -40,17 +53,17 @@
                 });
             });
 
-            function findClosestTime(time)
+            function findClosestTime(metadata_time)
             {
                 var index;
                 for( index in track )
                 {
-                    if(time < index)
+                    if(metadata_time < index)
                     {
-                        return track[index];
+                        return index;
                     }
                 }
-                return track[index];
+                return index;
             }
 
             function updateCandidates()
@@ -65,10 +78,12 @@
                 {
                     if(i < selected.length)
                     {
-                        candidate = selected[i];
-                        analysis = $("#analysis-" + candidate);
-                        metadata_time = analysis.attr("metadata-original-image-unixtime");
-                        markers[i] = findClosestTime(metadata_time);
+                        var candidate = selected[i];
+                        var analysis = $("#analysis-" + candidate);
+                        var metadata_time = analysis.attr("metadata-original-image-unixtime");
+                        metadata_time = Number.parseFloat(metadata_time);
+                        var close = findClosestTime(metadata_time);
+                        markers[i] = track[close];
 
                         if(version == 1)
                         {
