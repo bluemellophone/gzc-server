@@ -89,7 +89,23 @@ def analyze(ibs, qreq_dict, path_to_file):
         mkdir(animal_dir)
         print('creating directory %s' % (animal_dir))
 
+    # Add contributor to the database for this person
+    contrib_row_id_list = ibs.add_contributors(['IBEIS GZC Participant (%s, %s)' % (car, person, )])
+    offset_path = join(DEFAULT_DATA_DIR, 'images', car, person, 'offset.json')
+    with open(offset_path, 'r') as off:
+        data = json.load(off)
+        offset = data.get('offset', 0.0)
+        print("Applying Offset: %0.2f" % (offset, ))
+
+    # Add image to database
     gid_list = ibs.add_images([path_to_file], auto_localize=False)
+    reported_unixtime_list = ibs.get_image_unixtime(gid_list)
+    actual_unixtime_list = [ reported_unixtime + offset for reported_unixtime in reported_unixtime_list ]
+    print(reported_unixtime_list)
+    print(actual_unixtime_list)
+    # ibs.set_image_unixtime(gid_list, actual_unixtime_list)
+
+    ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list)
     original_gid = gid_list[0]
     print('starting detection for image %s and species %s...' % (path_to_file, species))
     aids_list = ibs.detect_random_forest(gid_list, species=species)

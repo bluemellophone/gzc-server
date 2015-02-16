@@ -13,8 +13,11 @@ import simplejson as json
 import optparse
 import logging
 # Other
+import time
+import datetime
 from os.path import join, exists, isdir, realpath
 import utool as ut
+import vtool as vt
 import operator
 import zipfile
 import shutil
@@ -88,7 +91,7 @@ def review(car, person):
             analysis_path = join('data', 'analysis', car_str, person, species)
             confidence_path = join(analysis_path, 'confidences.json')
             if exists(confidence_path):
-                with open(confidence_path) as f:
+                with open(confidence_path, 'r') as f:
                     data = json.load(f)
                     confidence_list = sorted(data.items(), key=operator.itemgetter(1), reverse=True)
                 # Load sorted prefixes
@@ -204,6 +207,18 @@ def images():
     except Exception as e:
         return sf.response(106, '[images] %s: %r' % (message, e, ))
 
+    # Capture offset from first image to today and reported time
+    reported_time = vt.parse_exif_unixtime(join(person_dir, 'first.jpg'))
+    actual_time = datetime.datetime.today()
+    actual_time = actual_time.replace(hour=int(time_hour), minute=int(time_minute), second=0, microsecond=0)
+    actual_time = time.mktime(actual_time.timetuple())
+    offset = actual_time - reported_time
+    print("Time Sync - Reported: %s, Actual %s [ OFFSET: %f ]" % (reported_time, actual_time, offset, ))
+    # Write offset to file
+    json_file = join(person_dir, 'offset.json')
+    with open(json_file, 'w') as ofile:
+        json.dump({ 'offset': offset }, ofile)
+
     # Return nice response
     return sf.response()
 
@@ -257,6 +272,7 @@ def gps():
             except Exception as e:
                 return sf.response(207, '[gps] Could not parse GPX file: %r' % (e, ))
             json_file.write(json_content)
+
     # Return nice response
     return sf.response()
 
