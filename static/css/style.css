@@ -239,15 +239,53 @@ html,body {
   text-transform: uppercase;
 }
 
+.identification-color-white
+{
+  background-color: #FFFFFF !important;
+  color: #333333 !important;
+  background-image: none !important;
+  border: 1px #333 solid !important;
+}
+
+.identification-color-red
+{
+  background-color: #d9534f !important;
+  background-image: none !important;
+}
+
+.identification-color-orange
+{
+  background-color: #EF7A4C !important;
+  background-image: none !important;
+}
+
+.identification-color-yellow
+{
+  background-color: #f0ad4e !important;
+  background-image: none !important;
+}
+
 .identification-color-green
 {
   background-color: #5cb85c !important;
   background-image: none !important;
 }
 
-.identification-color-red
+.identification-color-blue
 {
-  background-color: #d9534f !important;
+  background-color: #3071a9 !important;
+  background-image: none !important;
+}
+
+.identification-color-purple
+{
+  background-color: #6f5499 !important;
+  background-image: none !important;
+}
+
+.identification-color-black
+{
+  background-color: #333333 !important;
   background-image: none !important;
 }
 
@@ -304,6 +342,11 @@ a[href^="http://maps.google.com/maps"]
   {
     color: #FFFFFF !important;
     -webkit-print-color-adjust: exact;
+  }
+
+  .identification-color-white
+  {
+    color: #333333 !important;
   }
 
   .header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6

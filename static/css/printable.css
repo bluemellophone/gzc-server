@@ -17,6 +17,11 @@ color: #FFFFFF !important;
 -webkit-print-color-adjust: exact;
 }
 
+.identification-color-white
+{
+color: #333333 !important;
+}
+
 .header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6
 {
 padding: 0px !important;
