@@ -27,6 +27,13 @@ import shutil
 # Flags
 BROWSER = ut.get_argflag('--browser')
 
+# Ranges
+CAR_COLORS = ['white', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'black']
+CAR_NUMBER = map(str, range(0, 50))
+PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
+TIME_HOUR = map(str, range(0, 24))
+TIME_MINUTE = map(str, range(0, 60))
+
 # Defaults
 DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
@@ -123,13 +130,13 @@ def print_pdf(car, person):
     # Check if content.pdf has been written for this person
     pdf_path = join(person_dir, 'content.pdf')
     if not exists(pdf_path):
-        return sf.response(code='3', message='[print_pdf] Could not find pdf at %s' % pdf_path)
+        return sf.response(400, '[print_pdf] Could not find pdf at %s' % pdf_path)
     # Print using lpr
     # Obviously change MRC-Lab-Printer to whatever is actually going to be used
     execute = 'lpr -P %s %s' % (DEFAULT_PRINTER_NAME, pdf_path, )
     sp.Popen(execute, shell=True)
     # Return nice response
-    return sf.response(code='0')
+    return sf.response()
 
 
 ################################################################################
@@ -140,23 +147,63 @@ def print_pdf(car, person):
 @app.route('/images/submit', methods=['POST'])
 def images():
     # Process images for car and person
-    car_color     = request.form['car_color'].lower()
-    car_number    = request.form['car_number'].lower()
-    person        = request.form['person_letter'].lower()
-    image_archive = request.files['image_archive']
+    car_color     = request.form.get('car_color', '').lower()
+    car_number    = request.form.get('car_number', '').lower()
+    person        = request.form.get('person_letter', '').lower()
+    time_hour     = request.form.get('image_first_time_hour', '')
+    time_minute   = request.form.get('image_first_time_minute', '')
+
+    # Validate
+    if car_color not in CAR_COLORS:
+        return sf.response(101, '[images] Car color invalid')
+    if car_number not in CAR_NUMBER:
+        return sf.response(102, '[images] Car number invalid')
+    if person not in PERSON_LETTERS:
+        return sf.response(103, '[images] Person letter invalid')
+    if time_hour not in TIME_HOUR:
+        return sf.response(104, '[images] Time (hour) invalid')
+    if time_minute not in TIME_MINUTE:
+        return sf.response(105, '[images] Time (minute) invalid')
+
+    # Get image archive
+    image_archive = request.files.get('image_archive', None)
+    if image_archive is None:
+        return sf.response(106, '[images] No image archive posted')
 
     # If the directory already exists, delete it
     new_dir = realpath(join(DEFAULT_DATA_DIR, 'images', car_number + car_color, person))
     if isdir(new_dir):
-        print('%s already exists, deleting' % new_dir)
+        print('Reprocessing Images for (%s, %s, %s) because %s already exists, deleting old submission' % (car_number, car_color, person, new_dir, ))
         shutil.rmtree(new_dir)
 
     # Ensure the folder
     person_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'images', car_number, car_color, person)
 
     # Extract the content
-    with zipfile.ZipFile(image_archive, 'r') as zfile:
-        zfile.extractall(person_dir)
+    try:
+        with zipfile.ZipFile(image_archive, 'r') as zfile:
+            zfile.extractall(person_dir)
+    except Exception as e:
+        return sf.response(100, '[images] Could not write ZIP file: %r' % (e, ))
+
+    # Error checking for files
+    try:
+        message = ''
+        if not isdir(join(person_dir, 'zebra')):
+            message = 'Sub-directory "zebra" does not exist'
+            raise ValueError
+        if not isdir(join(person_dir, 'giraffe')):
+            message = 'Sub-directory "giraffe" does not exist'
+            raise ValueError
+        if not exists(join(person_dir, 'first.jpg')):
+            message = 'Image "first.jpg" does not exist'
+            raise ValueError
+        if not exists(join(person_dir, 'last.jpg')):
+            message = 'Image "last.jpg" does not exist'
+            raise ValueError
+    except Exception as e:
+        return sf.response(106, '[images] %s: %r' % (message, e, ))
+
     # Return nice response
     return sf.response()
 
@@ -164,20 +211,51 @@ def images():
 @app.route('/gps/submit', methods=['POST'])
 def gps():
     # Process gps for car
-    car_color  = request.form['car_color'].lower()
-    car_number = request.form['car_number'].lower()
-    gps_data   = request.files['gps_data']
+    car_color   = request.form.get('car_color', '').lower()
+    car_number  = request.form.get('car_number', '').lower()
+    time_hour   = request.form.get('gps_first_time_hour', '')
+    time_minute = request.form.get('gps_first_time_minute', '')
+
+    # Validate
+    if car_color not in CAR_COLORS:
+        return sf.response(201, '[gps] Car color invalid')
+    if car_number not in CAR_NUMBER:
+        return sf.response(202, '[gps] Car number invalid')
+    if time_hour not in TIME_HOUR:
+        return sf.response(204, '[gps] Time (hour) invalid')
+    if time_minute not in TIME_MINUTE:
+        return sf.response(205, '[gps] Time (minute) invalid')
+
+    # Get GPS data from GPX file
+    gps_data   = request.files.get('gps_data', None)
+    if gps_data is None:
+        return sf.response(206, '[gps] No GPX file posted')
+
+    # If the directory already exists, delete it
+    new_dir = realpath(join(DEFAULT_DATA_DIR, 'gps', car_number + car_color,))
+    if isdir(new_dir):
+        print('Reprocessing GPS for (%s, %s) because %s already exists, deleting old submission' % (car_number, car_color, new_dir, ))
+        shutil.rmtree(new_dir)
+
     # Ensure the folder
     car_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'gps', car_number, car_color)
     input_path  = join(car_dir, 'track.gpx')
     output_path = join(car_dir, 'track.json')
+
     # Save track.gpx into folder
-    gps_data.save(input_path)
+    try:
+        gps_data.save(input_path)
+    except Exception as e:
+        return sf.response(200, '[gps] Could not write GPX file: %r' % (e, ))
+
     # Convert the gpx file to json for javascript to be able to read it
     with open(input_path, 'r') as gpx_file:
         with open(output_path, 'w') as json_file:
             gpx_content = gpx_file.read()
-            json_content = sf.convert_gpx_to_json(gpx_content)
+            try:
+                json_content = sf.convert_gpx_to_json(gpx_content)
+            except Exception as e:
+                return sf.response(207, '[gps] Could not parse GPX file: %r' % (e, ))
             json_file.write(json_content)
     # Return nice response
     return sf.response()
@@ -195,8 +273,8 @@ def render_html(car, person):
     try:
         with open(input_path, 'w') as html_file:
             printable = url_for('static', filename='css/printable.css')
-            head_content = request.form['head_content']
-            html_content = request.form['html_content']
+            head_content = request.form.get('head_content', '')
+            html_content = request.form.get('html_content', '')
             content = '''
             <!DOCTYPE html>
             <html>
@@ -217,8 +295,8 @@ def render_html(car, person):
             content = content.replace('<script src="https://maps.gstatic.com/maps-api-v3/api/js/19/10/main.js"></script>', '')  # Fix for JavaScript Google Maps
             content = content.encode('utf-8')
             html_file.write(content)
-    except IOError as ioe:
-        return sf.response(code='1', msg='[render_html] Could not write HTML' + str(ioe))
+    except Exception as e:
+        return sf.response(300, '[render_html] Could not write HTML file: %r' % (e, ))
     # Render content.html with wkhtmltopdf to content.pdf
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
     execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)

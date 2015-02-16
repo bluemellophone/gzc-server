@@ -105,11 +105,35 @@ def template(template_name=None, **kwargs):
 def response(code=0, message='', **kwargs):
     '''
         CODES:
-            0 - Sucess / Nominal
-            1 - Error / File I/O error
-            2 - Error / wkhtmltopdf failure
-            3 - Error / No content.pdf
-            4 - Error / Failed to print
+            0XX - SYSTEM
+                0 - Sucess / Nominal
+
+            1XX - IMAGE IMPORT
+                100 - File I/O error
+                101 - Car color invalid
+                102 - Car number invalid
+                103 - Person letter invalid
+                104 - Time (hour) invalid
+                105 - Time (minute) invalid
+                106 - Image archive malformatted
+
+            2XX - GPS IMPORT
+                200 - File I/O error
+                201 - Car color invalid
+                202 - Car number invalid
+                203 - NOT USED
+                204 - Time (hour) invalid
+                205 - Time (minute) invalid
+                206 - GPS file malformatted
+                207 - GPX file failed to parse
+
+            3XX - REVIEW
+                300 - File I/O error
+                301 - wkhtmltopdf failure
+
+            4XX - PRINT
+                400 - No content.pdf
+                401 - Failed to print
     '''
     resp = {
         'status': {
