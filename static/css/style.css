@@ -322,6 +322,13 @@ a[href^="http://maps.google.com/maps"]
   height:1093px; 
 }
 
+.highlight-string { color: green; }
+.highlight-number { color: darkorange; }
+.highlight-boolean { color: blue; }
+.highlight-null { color: magenta; }
+.highlight-key { color: red; }
+
+
 /* Printing */
 @media print 
 {

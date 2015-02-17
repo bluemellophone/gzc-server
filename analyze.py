@@ -11,6 +11,7 @@ import webbrowser
 import ibeis
 import utool  # NOQA
 import utool as ut  # NOQA
+import vtool as vt
 import numpy as np
 
 from vtool import geometry
@@ -99,10 +100,8 @@ def analyze(ibs, qreq_dict, path_to_file):
 
     # Add image to database
     gid_list = ibs.add_images([path_to_file], auto_localize=False)
-    reported_unixtime_list = ibs.get_image_unixtime(gid_list)
-    actual_unixtime_list = [ reported_unixtime + offset for reported_unixtime in reported_unixtime_list ]
-    print(reported_unixtime_list)
-    print(actual_unixtime_list)
+    reported_time_list = [ vt.parse_exif_unixtime(path_to_file) ]
+    actual_unixtime_list = [ reported_unixtime + offset for reported_unixtime in reported_time_list ]
     ibs.set_image_unixtime(gid_list, actual_unixtime_list)
 
     ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list)
@@ -230,7 +229,7 @@ def analyze(ibs, qreq_dict, path_to_file):
         num_output = num_output_giraffes + num_output_zebras - 1
 
         # this file will be written once the directory has been sent for review
-        review_indicator_file = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'sentforreview.donotdelete')
+        review_indicator_file = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'review.flag')
         if num_output >= (FRACTION_FOR_REVIEW * num_input) and \
            num_output >= MINIMUM_FOR_REVIEW and \
            not isfile(review_indicator_file):

@@ -120,3 +120,23 @@ function loadGPSMap(track, markers, center)
         });
     }
 }
+
+function syntaxHighlight(json) {
+    json = JSON.stringify(json, undefined, 4);
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'highlight-number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'highlight-key';
+            } else {
+                cls = 'highlight-string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'highlight-boolean';
+        } else if (/null/.test(match)) {
+            cls = 'highlight-null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
