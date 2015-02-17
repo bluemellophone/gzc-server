@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+    <script type="text/javascript">
+        var ready = {};
+        var processed = {};
+        
+        var data_url = "{{ url_for('status') }}";
+            
+        $( document ).ready( function() {
+            
+            $.getJSON(data_url)
+                .success(function( data ) {
+                    console.log(data)
+                    $(".jumbotron").html("<pre>" + syntaxHighlight(data) + "</pre>");
+                    // $.each( data.track, function( key, marker ) {
+                
+                    //     last = marker.time;   
+                    //     track[last] = [marker.lat, marker.lon];
+
+                    // });
+                })
+                .error(function() { 
+                    // NOTHING
+                });
+        });
+    </script>
+    <div class="jumbotron">
+
+    </div>
+{% endblock %}

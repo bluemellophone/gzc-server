@@ -322,11 +322,30 @@ a[href^="http://maps.google.com/maps"]
   height:1093px; 
 }
 
-.highlight-string { color: green; }
-.highlight-number { color: darkorange; }
-.highlight-boolean { color: blue; }
-.highlight-null { color: magenta; }
-.highlight-key { color: red; }
+.highlight-string 
+{ 
+  color: green; 
+}
+
+.highlight-number 
+{ 
+  color: purple; 
+}
+
+.highlight-boolean 
+{ 
+  color: blue; 
+}
+
+.highlight-null 
+{ 
+  color: black; 
+}
+
+.highlight-key 
+{ 
+  color: red; 
+}
 
 
 /* Printing */
