@@ -116,7 +116,7 @@ def status():
             person_path = join(images_path, base_car, base_person)
             # Establish flags
             flags = flags_gps
-            flags['submitted'] = True
+            flags['submitted_images'] = True
             flags['submitted_first'] = exists(join(person_path, 'first.jpg'))
             flags['submitted_last']  = exists(join(person_path, 'last.jpg'))
             # Giraffe flags
