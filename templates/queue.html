@@ -1,26 +1,41 @@
 {% extends "layout.html" %}
 {% block content %}
     <script type="text/javascript">
+        var seconds = 0;
         var ready = {};
         var processed = {};
-        
         var data_url = "{{ url_for('status') }}";
             
+        var refreshInterval = setInterval(function() {
+            refreshData();
+        }, 30000);
+
+        var displayInterval = setInterval(function() {
+            seconds += 1;
+            $("#seconds-display").html("Last updated: " + seconds + " seconds")
+        }, 1000);
+
         $( document ).ready( function() {
+            refreshData();
+        });
+
+        function refreshData()
+        {
             template = '' + 
-                '<tr>' + 
-                '    <th scope="row">{0}</th>' + 
-                '    <td>{1}</td>' + 
-                '    <td>{2} / {3}</td>' + 
-                '    <td>{4}</td>' + 
-                '    <td>{5}</td>' + 
-                '    <td>{6}</td>' + 
-                '    <td>{7}</td>' + 
-                '</tr>';
+            '<tr>' + 
+            '    <td><b>{0}</b></td>' + 
+            '    <td><b>{1}</b></td>' + 
+            '    <td>{2} / {3}</td>' + 
+            '    <td>{4}</td>' + 
+            '    <td>{5}</td>' + 
+            '    <td>{6}</td>' + 
+            '    <td>{7}</td>' + 
+            '    <td><a class="btn btn-xs btn-primary" href="/review/{8}/{9}" target="_blank">Review</a>'
+            '</tr>';
 
             $.getJSON(data_url)
                 .success(function( data ) {
-                    console.log(data);
+                    $("#content").html('');
                     $("#source").html("<pre>" + syntaxHighlight(data) + "</pre>");
 
                     $.each( data.data.cars, function( key_car, car ) {
@@ -33,36 +48,46 @@
                                 person.analyzed,
                                 person.reviewed_posted,
                                 person.reviewed_rendered,
-                                person.reviewed_printed
-                                
+                                person.reviewed_printed,
+                                key_car,
+                                key_person
                             );
+                            var content = content.replace(/undefined/g, "");
+                            var content = content.replace(/true/g, "Yes");
+                            var content = content.replace(/false/g, "<b style='color:#d9534f;'>NO</b>");
+
                             $("#content").append(content);
                         });
                     });
+                    seconds = 0;
                 })
                 .error(function() { 
+                    $("#content").html('');
                     $("#source").html("ERROR LOADING STATUS");
                 });
-        });
+
+            
+        }
     </script>
     <div class="jumbotron" style="background-color: transparent;">
-    
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Car</th>
-                <th>Person</th>
-                <th>Submitted<br/>(Images / GPS)</th>
-                <th>Analysed</th>
-                <th>Posted</th>
-                <th>Rendered</th>
-                <th>Printed</th>
-            </tr>
-        </thead>
-        <tbody id="content">
-        </tbody>
-    </table>
-
+        <div id="seconds-display" style="width:100%; text-align: right; color: #bbb; font-style: italic;">
+        </div>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Car</th>
+                    <th>Person</th>
+                    <th>Submitted<br/>(Images / GPS)</th>
+                    <th>Analysed</th>
+                    <th>Posted</th>
+                    <th>Rendered</th>
+                    <th>Printed</th>
+                    <th>Review</th>
+                </tr>
+            </thead>
+            <tbody id="content">
+            </tbody>
+        </table>
     </div>
     <div class="jumbotron" id="source"></div>
 {% endblock %}
