@@ -48,6 +48,9 @@ def resize_img_by_smaller_dimension(img_in, new_size):
 
 
 def analyze(ibs, qreq_dict, path_to_file):
+    if not exists(path_to_file):
+        print("[analyze] The path_to_file no longer exists, skipping...")
+        return
     # decompose the path to get the animal type, person letter, and car information
     animal_path, fname = split(path_to_file)
     person_path, animal = split(animal_path)

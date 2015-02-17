@@ -43,6 +43,8 @@ DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
 # DEFAULT_PRINTER_NAME = 'MRC-Lab-Printer'
 DEFAULT_PRINTER_NAME = '_128_213_17_40'
+GMT_OFFSET = -5  # Troy
+# GMT_OFFSET = 3  # Nairobi
 
 # Application
 app = flask.Flask(__name__)
@@ -356,6 +358,7 @@ def images():
         with zipfile.ZipFile(image_archive, 'r') as zfile:
             zfile.extractall(person_dir)
     except Exception as e:
+        shutil.rmtree(new_dir)
         return sf.response(100, '[images] Could not write ZIP file: %r' % (e, ), **extra)
 
     # Error checking for files
@@ -374,6 +377,7 @@ def images():
             message = 'Image "last.jpg" does not exist'
             raise ValueError
     except Exception as e:
+        shutil.rmtree(new_dir)
         return sf.response(106, '[images] %s: %r' % (message, e, ), **extra)
 
     # Capture offset from first image to today and reported time
@@ -432,6 +436,7 @@ def gps():
     try:
         gps_data.save(input_path)
     except Exception as e:
+        shutil.rmtree(new_dir)
         return sf.response(200, '[gps] Could not write GPX file: %r' % (e, ), **extra)
 
     # Convert the gpx file to json for javascript to be able to read it
@@ -439,8 +444,9 @@ def gps():
         with open(output_path, 'w') as json_file:
             gpx_content = gpx_file.read()
             try:
-                json_content = sf.convert_gpx_to_json(gpx_content)
+                json_content = sf.convert_gpx_to_json(gpx_content, GMT_OFFSET)
             except Exception as e:
+                shutil.rmtree(new_dir)
                 return sf.response(207, '[gps] Could not parse GPX file: %r' % (e, ), **extra)
             json_file.write(json_content)
 

@@ -191,7 +191,7 @@ def ensure_structure(data, kind, car_number, car_color, person=None):
     return person_dir
 
 
-def convert_gpx_to_json(gpx_str):
+def convert_gpx_to_json(gpx_str, GMT_OFFSET=0):
     json_list = []
     root = ET.fromstring(gpx_str)
 
@@ -204,7 +204,7 @@ def convert_gpx_to_json(gpx_str):
         element = './/%stime' % (namespace, )
         dt = datetime.strptime(trkpt.find(element).text, '%Y-%m-%dT%H:%M:%S.%fZ')
         # Gather values
-        posix = int(time.mktime(dt.timetuple()))
+        posix = int(time.mktime(dt.timetuple())) + (60 * 60 * GMT_OFFSET)
         lat   = float(trkpt.get('lat'))
         lon   = float(trkpt.get('lon'))
         json_list.append({

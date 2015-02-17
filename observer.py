@@ -6,6 +6,7 @@ import sys
 import time
 import ibeis
 import analyze
+import traceback
 
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
@@ -155,7 +156,7 @@ if __name__ == '__main__':
                     print('\n\n***** EXCEPTION *****\n\n')
                     print('type_ = %r' % (type_))
                     print('ex = %r' % (ex))
-                    print('tb = %r' % (tb))
+                    traceback.print_tb(tb)
                     #raise type_, ex, tb
                 else:
                     print('observer is still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s)' % (path_to_watch, observer.isAlive(), queue.empty()))
