@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+    <style type="text/css">
+
+        .content
+        {
+            position: relative;
+        }
+        #triangle-topright 
+        {
+            width: 0;
+            height: 0;
+            border-left: 256px solid transparent;
+            position: relative;
+            font-size: 100px;
+            color: #e2e2e2;
+            margin-bottom: 20px;
+        }
+
+        .blue
+        {
+            border-top: 256px solid #3071A9;
+            z-index: 1000;
+        }
+
+        .orange:hover
+        {
+            z-index: 100;
+        }
+
+        .orange
+        {
+            border-top: 256px solid #EF7A4C;
+            /*position: absolute !important;
+            top: 0px;
+            left: 0px;*/
+            z-index: 2000;
+        }
+
+        .glyphicon-camera
+        {
+            position: absolute;
+            top: -235px;
+            right: 25px;
+        }
+
+
+        .glyphicon-map-marker
+        {
+            position: absolute;
+            top: -225px;
+            right: 25px;
+        }
+    </style>
+
+    <div id="triangle-topright" class="blue">
+        <span class="glyphicon glyphicon-camera" aria-hidden="true"></span>
+    </div>
+
+    <div id="triangle-topright" class="orange">
+        <span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>
+    </div>
+{% endblock %}
