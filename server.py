@@ -78,6 +78,11 @@ def queue():
     return sf.template('queue')
 
 
+@app.route('/workspace')
+def workspace():
+    return sf.template('workspace')
+
+
 ################################################################################
 # COMPLEX / GET ROUTES
 ################################################################################
