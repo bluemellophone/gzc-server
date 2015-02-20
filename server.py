@@ -78,6 +78,35 @@ def queue():
     return sf.template('queue')
 
 
+@app.route('/cards')
+def cards():
+    page_list = [
+        [
+            [
+                (1, 'red', 'a'),
+                (24, 'blue', 'f'),
+                (3, 'orange', 'd'),
+            ],
+            [
+                (18, 'purple', 'c'),
+                (4, 'white', 'd'),
+                (2, 'black', 'b'),
+            ],
+            [
+                (9, 'green', 'a'),
+                (11, 'yellow', 'e'),
+                (19, 'red', 'c'),
+            ],
+            [
+                (4, 'orange', 'b'),
+                (3, 'blue', 'f'),
+                (21, 'purple', 'a'),
+            ],
+        ]
+    ]
+    return sf.template('cards', page_list=page_list)
+
+
 @app.route('/workspace')
 def workspace():
     return sf.template('workspace')

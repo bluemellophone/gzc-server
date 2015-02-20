@@ -316,10 +316,22 @@ a[href^="http://maps.google.com/maps"]
   height:1000px; 
 }
 
+.us-letter-landscape
+{
+  width:1000px; 
+  height:772px; 
+}
+
 .a4-letter
 {
   width:773px; 
   height:1093px; 
+}
+
+.a4-letter-landscape
+{
+  width:1093px; 
+  height:773px; 
 }
 
 .highlight-string 
@@ -347,6 +359,94 @@ a[href^="http://maps.google.com/maps"]
   color: red; 
 }
 
+.card-row
+{
+  height: 25%;
+  margin:0px;
+}
+
+.card-row > .col-md-4
+{
+  padding: 8px;
+  height: 100%;
+  border: 1px #ddd solid;
+}
+
+.card-cell
+{
+  height:100%;
+  width: 100%;
+  position: relative;
+}
+
+.ibeis-logo
+{
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 75px;
+  height: auto;
+}
+
+.kws-logo
+{
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 147px;
+  height: auto;
+}
+
+.color-bar
+{
+  width: 100%;
+  text-transform: uppercase;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  text-align: center;
+  color: #FFF;
+  padding: 10px;
+  font-size: 30px;
+  line-height: 14px;
+  letter-spacing: 3px;
+}
+
+
+.color-bar.identification-color-white
+{
+  border-top: 0px !important;
+  border-color: #aaa !important; 
+}
+
+.color-bar > .col-no-pad
+{
+  padding: 0px;
+}
+
+.cell-row
+{
+  height: 74px;
+  border: 1px #aaa solid;
+  width: 100%;
+  position: absolute;
+  top: 62px;
+}
+
+
+.cell-row > .col-xs-6
+{
+  height: 100%;
+  text-align: center;
+  color: #aaa !important;
+}
+
+.hour-separation
+{
+  color: #333;
+  font-size: 60px;
+  line-height: 37px;
+}
 
 /* Printing */
 @media print 
@@ -370,7 +470,13 @@ a[href^="http://maps.google.com/maps"]
     -webkit-print-color-adjust: exact;
   }
 
-  .identification-color-white
+  .color-bar > .col-no-pad
+  {
+    color: #FFFFFF !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .color-bar.identification-color-white > .col-no-pad
   {
     color: #333333 !important;
   }
@@ -386,6 +492,11 @@ a[href^="http://maps.google.com/maps"]
     height: 0px !important;
   }
 
+
+  .content-container
+  {
+    margin: 0px;
+  }
   .content
   {
     margin-top: 0px !important;
