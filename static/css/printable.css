@@ -8,7 +8,6 @@ body *, header, footer
 {
 visibility: hidden !important;
 -webkit-print-color-adjust: exact;
-text-rendering: geometricPrecision;
 }
 
 .identification-container
@@ -17,7 +16,13 @@ color: #FFFFFF !important;
 -webkit-print-color-adjust: exact;
 }
 
-.identification-color-white
+.color-bar > .col-no-pad
+{
+color: #FFFFFF !important;
+-webkit-print-color-adjust: exact;
+}
+
+.color-bar.identification-color-white > .col-no-pad
 {
 color: #333333 !important;
 }
@@ -33,6 +38,11 @@ margin: 0px !important;
 height: 0px !important;
 }
 
+
+.content-container
+{
+margin: 0px;
+}
 .content
 {
 margin-top: 0px !important;

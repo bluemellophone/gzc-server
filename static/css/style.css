@@ -377,23 +377,33 @@ a[href^="http://maps.google.com/maps"]
   height:100%;
   width: 100%;
   position: relative;
+  /*background-color: lightgreen;*/
 }
 
 .ibeis-logo
 {
   position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 75px;
+  top: -4px;
+  left: -4px;
+  width: 44px;
+  height: auto;
+}
+
+.kwf-logo
+{
+  position: absolute;
+  top: -6px;
+  right: 84px;
+  width: 147px;
   height: auto;
 }
 
 .kws-logo
 {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 147px;
+  top: -4px;
+  right: -4px;
+  width: 88px;
   height: auto;
 }
 
