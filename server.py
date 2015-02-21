@@ -33,8 +33,8 @@ BROWSER = ut.get_argflag('--browser')
 
 # Ranges
 CAR_COLORS = ['white', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'black']
-CAR_NUMBER = map(str, range(1, 50))
-PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
+CAR_NUMBER = map(str, range(1, 26))  # 50
+PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f']  # , 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
 TIME_HOUR = map(str, range(0, 24))
 TIME_MINUTE = map(str, range(0, 60))
 
@@ -80,30 +80,22 @@ def queue():
 
 @app.route('/cards')
 def cards():
-    page_list = [
-        [
-            [
-                (1, 'red', 'a'),
-                (24, 'blue', 'f'),
-                (3, 'orange', 'd'),
-            ],
-            [
-                (18, 'purple', 'c'),
-                (4, 'white', 'd'),
-                (2, 'black', 'b'),
-            ],
-            [
-                (9, 'green', 'a'),
-                (11, 'yellow', 'e'),
-                (19, 'red', 'c'),
-            ],
-            [
-                (4, 'orange', 'b'),
-                (3, 'blue', 'f'),
-                (21, 'purple', 'a'),
-            ],
-        ]
-    ]
+    page_list = [ [ [ (1, 'red', 'a'), (24, 'blue', 'f'), (3, 'orange', 'd'), ], [ (18, 'purple', 'c'), (4, 'white', 'd'), (2, 'black', 'b'), ], [ (9, 'green', 'a'), (11, 'yellow', 'e'), (19, 'red', 'c'), ], [ (4, 'orange', 'b'), (3, 'blue', 'f'), (21, 'purple', 'a'), ], ] ]
+    i = 1
+    page = []
+    row = []
+    for car_color in CAR_COLORS:
+        for car_number in CAR_NUMBER:
+            for person_letter in PERSON_LETTERS:
+                row.append( (car_number, car_color, person_letter) )
+                if i % 3 == 0:
+                    page.append(row)
+                    row = []
+                if i % 12 == 0:
+                    page_list.append(page)
+                    page = []
+                i += 1
+
     return sf.template('cards', page_list=page_list)
 
 
