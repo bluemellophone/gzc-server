@@ -4,7 +4,7 @@ from __future__ import print_function
 import sys
 import time
 import ibeis
-import analyze
+import analyze  # NOQA
 import traceback
 
 from watchdog.observers import Observer
@@ -20,6 +20,11 @@ from utool import IMG_EXTENSIONS
 # TODO: how long should this wait be?
 # how long should the watchdog wait before it assumes a new file is fully written?
 FILE_CREATION_WAIT = 5
+# how many pending tasks should there be before they are dispatched?
+MIN_TASKS = 3
+# if there are pending tasks, how long should the observer wait before
+# dispatching them regardless of whether they are enough?
+TASK_TIMEOUT = 5
 
 ibeis._preload()
 
@@ -33,7 +38,26 @@ daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants
 qreq_zebra = ibs.new_query_request([], daid_list_zebra)
 qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
 
-qreq = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
+qreq_dict = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
+
+
+# to be valid the file must be in a directory named "zebra" or "giraffe"
+def is_valid_user_photo(path_to_file):
+    if not isfile(path_to_file):
+        return False
+    animal_path, fname = split(path_to_file)
+    person_path, animal = split(animal_path)
+    car_path, person = split(person_path)
+    _, car = split(car_path)
+
+    car = car.lower()
+    person = person.lower()
+    animal = animal.lower()
+
+    if person.isalpha() and car.isalnum() and (animal == 'zebra' or animal == 'giraffe'):
+        return True
+    else:
+        return False
 
 
 class NewImageHandler(PatternMatchingEventHandler):
@@ -54,12 +78,10 @@ class NewImageHandler(PatternMatchingEventHandler):
             path/to/observed/file
         """
         full_path = realpath(event.src_path)
-        print('file: %s, event: %s' % (full_path, event.event_type))
-        print('giving the OS %d seconds to finish writing the file %s' % (FILE_CREATION_WAIT, full_path))
-        # need to sleep to give the OS time to finish writing the file
-        # note that new files will still be detected!!!
-        time.sleep(FILE_CREATION_WAIT)
-        self.queue.put(full_path)
+        # avoid spamming with non-photo files like first.jpg, etc.
+        if is_valid_user_photo(full_path):
+            print('[observer] %s: %s' % (full_path, event.event_type))
+            self.queue.put(full_path)
 
 #    def on_modified(self, event):
 #        self.process(event)
@@ -68,13 +90,13 @@ class NewImageHandler(PatternMatchingEventHandler):
         self.process(event)
 
 
-def process_image(fname):
-    print('received request: %s' % (fname))
-#    time.sleep(10) # fake processing the request
+def process_images(fname_list):
+    print('[observer] received %d requests' % (len(fname_list)))
+    # time.sleep(3)  # fake processing the request
     try:
-        analyze.analyze(ibs, qreq, fname)
-        print('request completed: %s' % (fname))
-        return fname
+        analyze.analyze(ibs, qreq_dict, fname_list)
+        print('[observer] completed %d requests' % (len(fname_list)))
+        return fname_list
     except Exception:
         return sys.exc_info()
 
@@ -85,9 +107,9 @@ def recover_state(queue, data_dir, results_dir):
     for root, dirnames, filenames in walk(path_to_watch):
         for filename in filenames:
             # only check for actual animal images
-            _, animal = split(root)
-            if animal == 'giraffe' or animal == 'zebra':
-                input_files.append(join(root, filename))
+            path_to_file = join(root, filename)
+            if is_valid_user_photo(path_to_file):
+                input_files.append(path_to_file)
 
     # remember to remove leading backslash so that os.path.join works correctly
     input_files_cleaned = [text.replace(data_dir, '')[1:] for text in input_files]
@@ -106,7 +128,7 @@ def recover_state(queue, data_dir, results_dir):
 
         # if the either the json file does't exist or no match file is found, re-analyze this file
         if not isfile(file_to_check_json) or True not in files_to_check_match_existence:
-            print('the file %s has to be analyzed' % (realpath(filepath_full)))
+            print('[observer] the file %s has to be analyzed' % (realpath(filepath_full)))
             queue.put(realpath(filepath_full))
             num_recovered += 1
 
@@ -134,33 +156,52 @@ if __name__ == '__main__':
     if observer.isAlive():
         print('\n\n***** OBSERVER IS LIVE *****\n\n')
     else:
-        print('the observer failed to start!')
+        print('[observer] the observer failed to start!')
         exit(1)
 
     # check if there are input images without results
-    print('attempting to recover state...')
+    print('[observer] attempting to recover state...')
     num_recovered = recover_state(queue, path_to_watch, results_dir)
-    print('found %d file(s) that are missing results to add to the queue' % (num_recovered))
-    print('observer is now monitoring %s for new files' % (path_to_watch))
+    print('[observer] found %d file(s) that are missing results to add to the queue' % (num_recovered))
+    print('[observer] observer is now monitoring %s for new files' % (path_to_watch))
 
+    task_list = []
+    time_out = TASK_TIMEOUT
     # process new images as the observer puts them in the queue
     try:
         while True:
             time.sleep(1)
-            # print('queue size: %d' % (queue.qsize()))
-            if not queue.empty():
-                result = process_image(queue.get())
-                if isinstance(result, tuple):
-                    type_, ex, tb = result
-                    print('\n\n***** EXCEPTION *****\n\n')
-                    print('type_ = %r' % (type_))
-                    print('ex = %r' % (ex))
-                    traceback.print_tb(tb)
-                    #raise type_, ex, tb
+            if task_list:
+                print('[observer] timeout = %d with %d tasks waiting (need %d to process)' % (time_out, len(task_list), MIN_TASKS))
+                time_out -= 1
+
+            while not queue.empty():
+                fname = queue.get()
+                if fname not in task_list:
+                    print('[observer] unpacking task: %s' % (fname))
+                    task_list.append(fname)
                 else:
-                    print('observer is still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s)' % (path_to_watch, observer.isAlive(), queue.empty()))
+                    print('[observer] removed duplicate file: %s' % (fname))
+
+            if len(task_list) > MIN_TASKS or time_out < 0:
+                print('[observer] process triggered! reasons:\n[observer]  enough tasks? %s\n[observer]  timeout? %s' % (len(task_list) > MIN_TASKS, time_out < 0))
+                print('[observer] waiting for %d seconds before dispatching...' % (FILE_CREATION_WAIT))
+                time.sleep(FILE_CREATION_WAIT)
+                result_list = process_images(task_list)
+                task_list = []
+                time_out = TASK_TIMEOUT
+
+                if isinstance(result_list, tuple):
+                    type_, ex, tb = result_list
+                    print('\n\n***** EXCEPTION *****\n\n')
+                    print('[observer] type_ = %r' % (type_))
+                    print('[observer] ex = %r' % (ex))
+                    traceback.print_tb(tb)
+
+                print('[observer] still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s, len(task_list) = %d)' % (path_to_watch, observer.isAlive(), queue.empty(), len(task_list)))
+
     except KeyboardInterrupt:
-        print('observer shutting down!')
+        print('[observer] shutting down!')
         observer.stop()
 
-    observer.join()
+        observer.join()
