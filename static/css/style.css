@@ -383,19 +383,20 @@ a[href^="http://maps.google.com/maps"]
 .ibeis-logo
 {
   position: absolute;
-  top: -4px;
-  left: -4px;
-  width: 44px;
-  height: auto;
+  height: 170px;
+}
+
+.kwf-logo-container
+{
+  width:100%;
+  text-align: center;
 }
 
 .kwf-logo
 {
-  position: absolute;
-  top: -6px;
-  right: 84px;
-  width: 147px;
+  width: 215px;
   height: auto;
+  margin-top: -4px;
 }
 
 .kws-logo
@@ -422,7 +423,6 @@ a[href^="http://maps.google.com/maps"]
   letter-spacing: 3px;
 }
 
-
 .color-bar.identification-color-white
 {
   border-top: 0px !important;
@@ -443,7 +443,6 @@ a[href^="http://maps.google.com/maps"]
   top: 62px;
 }
 
-
 .cell-row > .col-xs-6
 {
   height: 100%;
@@ -453,9 +452,17 @@ a[href^="http://maps.google.com/maps"]
 
 .hour-separation
 {
-  color: #333;
+  color: #333 !important;
   font-size: 60px;
   line-height: 37px;
+}
+
+.background-information
+{
+  color: #333 !important;
+  margin-left: 60%;
+  padding: 24px 0px;
+  height: 100%;
 }
 
 /* Printing */

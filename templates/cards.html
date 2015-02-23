@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     <div class="printarea">
-        {% for page in page_list %}
+        {% for page in page_list[0:1] %}
         <div class="printarea-document">
             <div id="content-container" class="us-letter-landscape" style="margin-left:auto; margin-right:auto; margin-top:0px; margin-bottom:30px; border: 1px solid #ddd; padding:10px !important;">
                 {% for row in page %}
@@ -9,9 +9,9 @@
                     {% for cell in row %}
                     <div class="col-xs-4 col-sm-4 col-md-4">
                         <div class="card-cell">
-                            <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis_desat.png') }}"> 
-                            <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_kwf_desat.png') }}"> 
-                            <img class="kws-logo" src="{{ url_for('static', filename='images/logo_kws_desat.png') }}"> 
+                            <div class="kwf-logo-container">
+                                <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_kwf_desat.png') }}"> 
+                            </div>
 
                             <div class="color-bar identification-color-{{ cell[1] }}">
                                 <div class="col-no-pad col-xs-3 col-sm-3 col-md-3">{{ cell[0] }}</div>
@@ -27,6 +27,25 @@
                                 <div class="col-xs-6 col-sm-6 col-md-6">
                                     Image File Name
                                 </div>
+                            </div>  
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="printarea-document">
+            <div id="content-container" class="us-letter-landscape" style="margin-left:auto; margin-right:auto; margin-top:0px; margin-bottom:30px; border: 1px solid #ddd; padding:10px !important;">
+                {% for row in range(4) %}
+                <div class="row card-row">
+                    {% for cell in range(3) %}
+                    <div class="col-xs-4 col-sm-4 col-md-4">
+                        <div class="card-cell">
+                            <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis.png') }}"> 
+                            <div class="background-information">
+                                ibeis.org
                             </div>  
                         </div>
                     </div>
