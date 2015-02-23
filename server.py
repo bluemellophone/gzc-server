@@ -73,6 +73,11 @@ def gps_form():
     return sf.template('gps')
 
 
+@app.route('/map')
+def map():
+    return sf.template('map')
+
+
 @app.route('/queue')
 def queue():
     return sf.template('queue')
