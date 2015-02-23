@@ -21,31 +21,25 @@
         var markers = {};
         
         $( document ).ready( function() {
+            {% autoescape false %}
+                var data = $.parseJSON('{{ data }}');
+            {% endautoescape %}
+            var last = undefined;
+            $.each( data.track, function( key, marker ) {
+                if(last === undefined)
+                {
+                    last = marker.time;
+                    console.log("TRACK FIRST: " + last);
+                }
+                else
+                {
+                    last = marker.time;   
+                }
+                track[last] = [marker.lat, marker.lon];
+            });
+            console.log("TRACK LAST: " + last);
+
             renderMap();
-            // var gps_url = "{{ gps_url }}";
-            // $.getJSON(gps_url)
-            //     .success(function( data ) {
-            //         var last = undefined;
-            //         $.each( data.track, function( key, marker ) {
-            //             if(last === undefined)
-            //             {
-            //                 last = marker.time;
-            //                 console.log("TRACK FIRST: " + last);
-            //             }
-            //             else
-            //             {
-            //                 last = marker.time;   
-            //             }
-            //             track[last] = [marker.lat, marker.lon];
-
-            //         });
-            //         console.log("TRACK LAST: " + last);
-
-            //         updateCandidates();
-            //     })
-            //     .error(function() { 
-            //         updateCandidates();
-            //     });
         });
 
         function renderMap()

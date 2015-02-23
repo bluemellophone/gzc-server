@@ -73,9 +73,9 @@ def gps_form():
     return sf.template('gps')
 
 
-@app.route('/map')
-def map():
-    return sf.template('map')
+@app.route('/map/form')
+def map_form():
+    return sf.template('map_form')
 
 
 @app.route('/queue')
@@ -433,8 +433,8 @@ def gps():
     extra = {}
     car_color   = request.form.get('car_color', '').lower()
     car_number  = request.form.get('car_number', '').lower()
-    time_hour   = request.form.get('gps_first_time_hour', '')
-    time_minute = request.form.get('gps_first_time_minute', '')
+    time_hour   = request.form.get('gps_start_time_hour', '')
+    time_minute = request.form.get('gps_start_time_minute', '')
 
     # Validate
     if car_color not in CAR_COLORS:
@@ -483,6 +483,17 @@ def gps():
 
     # Return nice response
     return sf.response(**extra)
+
+
+@app.route('/map/submit', methods=['POST'])
+def map():
+    gpx_data  = request.files.get('gps_data_gpx', None)
+    json_data = request.files.get('gps_data_json', None)
+    gpx_str   = gpx_data.stream.read()
+    json_str  = json_data.stream.read()
+    if len(gpx_str) > 0:
+        json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
+    return sf.template('map', data=json_str)
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])

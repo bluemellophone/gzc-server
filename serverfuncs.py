@@ -23,6 +23,7 @@ class NavbarClass(object):
             ('',     'Home'),
             ('images/form', 'Images'),
             ('gps/form',  'GPS'),
+            ('map/form',  'Map'),
         ]
 
     def __iter__(nav):
