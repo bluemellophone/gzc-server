@@ -130,6 +130,7 @@ def status():
             flags['submitted_gpx']  = exists(join(car_path, 'track.gpx'))
             flags['submitted_generated_json'] = exists(join(car_path, 'track.json'))
             cars[base_car] = { 'gps': flags }
+            cars[base_car]['persons'] = {}
     except:
         print("No GPS data submitted yet")
 

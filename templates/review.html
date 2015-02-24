@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     {% if not valid %}
-        <div class="jumbotron" style="text-align: center">
+        <div class="jumbotron" style="text-align: center; position: relative;">
             <h3>OOPS...</h3>
             <p>
                 The car and person you tried to review has not been processed yet by IBEIS.
@@ -9,6 +9,9 @@
                 <br/>
                 Please try again later.
             </p>
+            <a href="?override" style="position: absolute; bottom: 10px; right: 10px; color: #333;">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            </a>
         </div>
     {% else %}
         <script type="text/javascript">
@@ -307,8 +310,8 @@
                                             <div class="candidate-information-top">
                                             </div>
                                             <div style="position: absolute; display: table-cell; text-align: center; width: 100%; font-size: 18px;">
-                                                <span class="glyphicon glyphicon glyphicon glyphicon-arrow-up" aria-hidden="true" style="top: -10px;"></span>
-                                                <span class="glyphicon glyphicon glyphicon glyphicon-arrow-down" aria-hidden="true" style="top: -10px;"></span>
+                                                <span class="glyphicon glyphicon-arrow-up" aria-hidden="true" style="top: -10px;"></span>
+                                                <span class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="top: -10px;"></span>
                                             </div>
                                             <div class="candidate-information-bottom">
                                             </div>
@@ -332,8 +335,8 @@
                         <script type="text/javascript" id="javascript-renderMap-container">
                             function renderMap()
                             {
-                                // var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
-                                var center = new google.maps.LatLng(42.728, -73.687); // Troy
+                                var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
+                                // var center = new google.maps.LatLng(42.728, -73.687); // Troy
                                 loadGPSMap(track, markers, center);
                             }
                         </script>
