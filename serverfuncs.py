@@ -20,10 +20,12 @@ import re
 class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
-            ('',     'Home'),
+            ('',            'Home'),
+            ('overview',    'Overview'),
             ('images/form', 'Images'),
-            ('gps/form',  'GPS'),
-            ('map/form',  'Map'),
+            ('gps/form',    'GPS'),
+            ('map/form',    'Map'),
+            ('cards',       'Cards'),
         ]
 
     def __iter__(nav):
