@@ -108,6 +108,7 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
     print('[analyze] grouped_valid_tup_list = ' + ut.list_str(grouped_valid_tup_list))
     print('[analyze] grouped_path_list      = ' + ut.list_str(grouped_path_list))
 
+    assert len(grouped_valid_tup_list) == len(grouped_path_list), 'lengths must match for zip'
     for groupx, (tup, valid_path_list) in enumerate(zip(grouped_valid_tup_list, grouped_path_list)):
         car_list, person_list, animal_list, species_list, offset_list, contrib_row_id_list = zip(*tup)
 
@@ -180,8 +181,11 @@ def postprocess_result(ibs, _tup):
     fname = basename(path_to_file)
     fname_base, fname_ext = splitext(fname)
     for (qx, qres), qaid in zip(enumerate(qres_list), qaids):
+        if qres is None:
+            print('cannot execute query number %d on the database, because qres = %r' % (qx, qres,))
+            continue
         assert qres.qaid == qaid
-        bbox = ibs.get_annot_verts(qaid)  # postprocess_result(qx, qres, bbox)
+        bbox = ibs.get_annot_verts(qaid)
         print('[analyze] processing detection %d:' % (qx))
         aids = qres.get_top_aids(num=1)
 
@@ -271,23 +275,23 @@ def check_if_need_review(person, car):
         else:
             num_input_zebras = 0
 
-        # only count files of json type
+        # only count files of json type, do not count confidences.json
         giraffe_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')
         # perhaps no giraffes have been generated as output yet
         if isdir(giraffe_output_dir):
-            num_output_giraffes = len([f for f in listdir(giraffe_output_dir) if f.endswith('.json')])
+            num_output_giraffes = len([f for f in listdir(giraffe_output_dir) if (f.endswith('.json') and f != 'confidences.json')])
         else:
             num_output_giraffes = 0
 
         zebra_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'zebra')
         if isdir(zebra_output_dir):
-            num_output_zebras = len([f for f in listdir(zebra_output_dir) if f.endswith('.json')])
+            num_output_zebras = len([f for f in listdir(zebra_output_dir) if (f.endswith('.json') and f != 'confidences.json')])
         else:
             num_output_zebras = 0
 
-        # compute the sum (subtract one for confidences.json)
+        # compute the number of input and output images
         num_input = num_input_giraffes + num_input_zebras
-        num_output = num_output_giraffes + num_output_zebras - 1
+        num_output = num_output_giraffes + num_output_zebras
 
         # this file will be written once the directory has been sent for review
         review_indicator_file = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'review.flag')
@@ -295,8 +299,8 @@ def check_if_need_review(person, car):
         minimum_check = (num_output >= MINIMUM_FOR_REVIEW)
         existence_check = (not isfile(review_indicator_file))
         print('[analyze] checking if a review is ready for %s' % (join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')))
-        print('[analyze]  minimum files required? %d/%d ==> %s' % (num_output, MINIMUM_FOR_REVIEW, minimum_check))
-        print('[analyze]  necessary fraction of input files? %.2f * %d = %.2f >=? %d' % (FRACTION_FOR_REVIEW, num_input, FRACTION_FOR_REVIEW * num_input, num_output))
+        print('[analyze]  minimum files required? %d (minimum = %d) ===> %s' % (num_output, MINIMUM_FOR_REVIEW, minimum_check))
+        print('[analyze]  necessary fraction of input files? %.2f * %d = %.2f le? %d ===> %s' % (FRACTION_FOR_REVIEW, num_input, FRACTION_FOR_REVIEW * num_input, num_output, fraction_check))
         print('[analyze]  has this directory not been review before? %s' % (existence_check))
         if minimum_check and \
            fraction_check and \
