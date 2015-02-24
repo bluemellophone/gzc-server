@@ -78,9 +78,9 @@ def map_form():
     return sf.template('map_form')
 
 
-@app.route('/queue')
-def queue():
-    return sf.template('queue')
+@app.route('/overview')
+def overview():
+    return sf.template('overview')
 
 
 @app.route('/cards')
