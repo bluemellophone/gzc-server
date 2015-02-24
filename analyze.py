@@ -23,6 +23,7 @@ from shutil import copy  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[analyze]')
 
 
+# defaults only, use the parameters in observer.py to re-configure
 DEFAULT_DATA_DIR = 'data'
 DEFAULT_SERVER_IP_ADDRESS = '127.0.0.1'
 DEFAULT_SERVER_PORT = 5000
@@ -337,6 +338,11 @@ if __name__ == '__main__':
     car = '1GREEN'
     person_letter = 'D'
     ibs = ibeis.opendb(db=opts.db)
+    analyze_params = {'DEFAULT_DATA_DIR': 'data',
+                      'SERVER_IP_ADDRESS': '127.0.0.1',
+                      'SERVER_PORT': 5000,
+                      'FRACTION_FOR_REVIEW': 0.8,
+                      'MINIMUM_FOR_REVIEW': 8}
 
     species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
 
@@ -363,11 +369,11 @@ if __name__ == '__main__':
     ]
     both_list = pz_gpath_list + gir_gpath_list
 
-    #analyze(ibs, qreq_dict, species_dict, pz_gpath_list)
-    #analyze(ibs, qreq_dict, species_dict, gir_gpath_list)
+    #analyze(ibs, qreq_dict, species_dict, pz_gpath_list, analyze_params)
+    #analyze(ibs, qreq_dict, species_dict, gir_gpath_list, analyze_params)
 
     # Test multiple images of different same species
-    analyze(ibs, qreq_dict, species_dict, both_list)
+    analyze(ibs, qreq_dict, species_dict, both_list, analyze_params)
 
     print('\n\n ***** TEST RESULTS ***** \n\n')
     result_list = []
