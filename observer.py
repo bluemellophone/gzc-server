@@ -30,6 +30,8 @@ from ibeis import constants as const
 #                      is sent for processing.
 # TASK_TIMEOUT:        If the MIN_TASKS requirement is not satisfied, this is how long
 #                      the observer will wait before sending the whole task list regardless.
+# IBEIS_USE_TWO_DBS:   Whether IBEIS should use the same database for both
+#                      species, or a separate database for each species.
 # SERVER_IP_ADDRESS:   If set here, applies to the analyze module too.
 # SERVER_PORT:         If set here, applies to the analyze module too.
 # FRACTION_FOR_REVIEW: If N and M are the number of input images and output
@@ -42,7 +44,7 @@ DEFAULT_DATA_DIR = 'data'
 FILE_CREATION_WAIT = 5  # seconds
 MIN_TASKS = 8
 TASK_TIMEOUT = 5  # seconds
-IBEIS_DB = 'PZ_MTEST'
+IBEIS_USE_TWO_DBS = False
 
 # parameters that will be passed to the analyze module
 analyze_params = {'DEFAULT_DATA_DIR': DEFAULT_DATA_DIR,
@@ -52,19 +54,29 @@ analyze_params = {'DEFAULT_DATA_DIR': DEFAULT_DATA_DIR,
                   'MINIMUM_FOR_REVIEW': 8}
 
 ibeis._preload()
-ibs = ibeis.opendb(IBEIS_DB)
+
+if IBEIS_USE_TWO_DBS:
+    IBEIS_DB1 = 'PZ_MUGU_ALL'   # the specialist plains zebra database
+    IBEIS_DB2 = 'GIRM_MUGU_20'  # the specialist masai giraffe database
+    ibspz = ibeis.opendb(IBEIS_DB1)
+    ibsgir = ibeis.opendb(IBEIS_DB2)
+    ibsmap = {'zebra': ibspz, 'giraffe': ibsgir}
+else:
+    IBEIS_DB = 'MUGU_MASTER'    # the merged database containing both plains zebras and masai giraffes
+    ibs_single = ibeis.opendb(IBEIS_DB)
+    ibsmap = {'zebra': ibs_single, 'giraffe': ibs_single}
 
 
 # TODO: update the species name for GIRAFFE_MASAI when the DB is ready
 # species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE_MASAI}
 species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
 
-daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
-daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
+daid_list_zebra = ibsmap['zebra'].get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
+daid_list_giraffe = ibsmap['giraffe'].get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
 
 # build the query request objects for zebras and giraffes
-qreq_zebra = ibs.new_query_request([], daid_list_zebra)
-qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
+qreq_zebra = ibsmap['zebra'].new_query_request([], daid_list_zebra)
+qreq_giraffe = ibsmap['giraffe'].new_query_request([], daid_list_giraffe)
 
 qreq_dict = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
 
@@ -128,7 +140,7 @@ def process_images(fname_list):
     print('[observer] received %d requests' % (len(fname_list)))
     # time.sleep(3)  # fake processing the request
     try:
-        analyze.analyze(ibs, qreq_dict, species_dict, fname_list, analyze_params)
+        analyze.analyze(ibsmap, qreq_dict, species_dict, fname_list, analyze_params)
         print('[observer] completed %d requests' % (len(fname_list)))
         return fname_list
     except Exception:

@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import cv2
 import simplejson as json
-import optparse
 import webbrowser
 
 # IBEIS
@@ -50,7 +49,7 @@ def resize_img_by_smaller_dimension(img_in, new_size):
     return img_out, ratio
 
 
-def preprocess_fpath(ibs, species_dict, path_to_file, params):
+def preprocess_fpath(ibsmap, species_dict, path_to_file, params):
     data_dir = params.get('DEFAULT_DATA_DIR', DEFAULT_DATA_DIR)
     if not exists(path_to_file):
         print("[analyze] The path_to_file %r no longer exists, skipping..." % (path_to_file,))
@@ -75,6 +74,11 @@ def preprocess_fpath(ibs, species_dict, path_to_file, params):
         return None  # this is some other image, e.g., the timestamp clock
 
     print('[analyze] received request for car %s, person %s, to analyze file %s which contains an animal of type %s' % (car, person, path_to_file, animal))
+    # ibsmap should always be a dict
+    if isinstance(ibsmap, dict):
+        ibs = ibsmap[animal]
+    else:
+        ibs = ibsmap
 
     # Add contributor to the database for this person
     contrib_row_id = ibs.add_contributors(['IBEIS GZC Participant (%s, %s)' % (car, person, )])[0]  # NOQA
@@ -87,11 +91,11 @@ def preprocess_fpath(ibs, species_dict, path_to_file, params):
     return car, person, animal, species, offset, contrib_row_id
 
 
-def analyze(ibs, qreq_dict, species_dict, path_to_file_list, params):
+def analyze(ibsmap, qreq_dict, species_dict, path_to_file_list, params):
     print('[analyze] Beginning Analyze')
     print('[analyze] Received %d file paths' % (len(path_to_file_list)))
     # decompose the filename to get the car/person to whom this image belongs
-    info_tup_list = [preprocess_fpath(ibs, species_dict, path_to_file, params) for path_to_file in path_to_file_list]
+    info_tup_list = [preprocess_fpath(ibsmap, species_dict, path_to_file, params) for path_to_file in path_to_file_list]
     is_valid_list = [tup_ is not None for tup_ in info_tup_list]
 
     # get the ungrouped tuples that were not None
@@ -100,8 +104,16 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list, params):
 
     # group by species
     valid_species_list_ug = ut.get_list_column(valid_tup_list_ug, 3)
-    species_rowid_list_ug = ibs.get_species_rowids_from_text(valid_species_list_ug)
-    unique_species_rowids, groupxs = vt.group_indices(np.array(species_rowid_list_ug))
+    seen_species = {}
+    def get_species_tmpid(txt):
+        if txt in seen_species:
+            return seen_species[txt]
+        else:
+            seen_species[txt] = len(seen_species)
+            return get_species_tmpid(txt)
+    species_tmpid_list = np.array([get_species_tmpid(txt) for txt in valid_species_list_ug])
+    #ibs.get_species_rowids_from_text(valid_species_list_ug)
+    unique_species_rowids, groupxs = vt.group_indices(np.array(species_tmpid_list))
 
     grouped_valid_tup_list = vt.apply_grouping(np.array(valid_tup_list_ug, dtype=object), groupxs)
     grouped_path_list = vt.apply_grouping(np.array(valid_path_list_ug, dtype=object), groupxs)
@@ -118,6 +130,7 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list, params):
 
         animal = animal_list[0]
         species = species_list[0]
+        ibs = ibsmap[animal]
         with ut.Indenter('[GROUP-%d-%s]' % (groupx, species)):
             assert ((animal == 'zebra' and species == species_dict['zebra']) or
                     (animal == 'giraffe' and species == species_dict['giraffe'])), 'animal/species mismatch!'
@@ -324,20 +337,20 @@ def check_if_need_review(person, car, params):
 
 
 if __name__ == '__main__':
-    '''
-    Parse command line options and start the server.
-    '''
-    parser = optparse.OptionParser()
-    parser.add_option(
-        '--db',
-        help='specify an IBEIS database',
-        type='str', default='PZ_MTEST')
-
-    opts, args = parser.parse_args()
+    IBEIS_USE_TWO_DBS = False
+    if IBEIS_USE_TWO_DBS:
+        IBEIS_DB1 = 'PZ_MUGU_19'
+        IBEIS_DB2 = 'GIRM_MUGU_20'
+        ibspz = ibeis.opendb(IBEIS_DB1)
+        ibsgir = ibeis.opendb(IBEIS_DB2)
+        ibsmap = {'zebra': ibspz, 'giraffe': ibsgir}
+    else:
+        IBEIS_DB = 'MUGU_MASTER'
+        ibs_single = ibeis.opendb(IBEIS_DB)
+        ibsmap = {'zebra': ibs_single, 'giraffe': ibs_single}
 
     car = '1GREEN'
     person_letter = 'D'
-    ibs = ibeis.opendb(db=opts.db)
     analyze_params = {'DEFAULT_DATA_DIR': 'data',
                       'SERVER_IP_ADDRESS': '127.0.0.1',
                       'SERVER_PORT': 5000,
@@ -346,10 +359,10 @@ if __name__ == '__main__':
 
     species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
 
-    daid_list_zebra   = ibs.get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
-    daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
-    qreq_zebra   = ibs.new_query_request([], daid_list_zebra)
-    qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
+    daid_list_zebra   = ibsmap['zebra'].get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
+    daid_list_giraffe = ibsmap['giraffe'].get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
+    qreq_zebra   = ibsmap['zebra'].new_query_request([], daid_list_zebra)
+    qreq_giraffe = ibsmap['giraffe'].new_query_request([], daid_list_giraffe)
 
     qreq_dict = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
 
@@ -369,11 +382,11 @@ if __name__ == '__main__':
     ]
     both_list = pz_gpath_list + gir_gpath_list
 
-    #analyze(ibs, qreq_dict, species_dict, pz_gpath_list, analyze_params)
-    #analyze(ibs, qreq_dict, species_dict, gir_gpath_list, analyze_params)
+    #analyze(ibsmap, qreq_dict, species_dict, pz_gpath_list, analyze_params)
+    #analyze(ibsmap, qreq_dict, species_dict, gir_gpath_list, analyze_params)
 
     # Test multiple images of different same species
-    analyze(ibs, qreq_dict, species_dict, both_list, analyze_params)
+    analyze(ibsmap, qreq_dict, species_dict, both_list, analyze_params)
 
     print('\n\n ***** TEST RESULTS ***** \n\n')
     result_list = []
