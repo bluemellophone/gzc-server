@@ -61,6 +61,30 @@ function submitPDF(car, person)
 
 function loadGPSMap(track, markers, center)
 {
+    var mugu_polygon = [
+        [36.84760358494509,-1.327081544529206],
+        [36.89582228098138,-1.359345639801114],
+        [36.91977612521943,-1.381966878596614],
+        [36.94217512814311,-1.403520649350417],
+        [36.96222324781215,-1.4400383096453],
+        [36.96220937004082,-1.444560752347773],
+        [36.93074624450506,-1.429101257073484],
+        [36.92088994113633,-1.414716462920922],
+        [36.90062300775902,-1.414175015784091],
+        [36.87104523185378,-1.406720257763014],
+        [36.84554325722971,-1.391551003367723],
+        [36.83570445212342,-1.389158319389488],
+        [36.82266258214148,-1.38543366306295],
+        [36.80679374059817,-1.389168693769334],
+        [36.772596148744,-1.388909767344104],
+        [36.77049832998264,-1.38121562081811],
+        [36.76191950818965,-1.355269851938948],
+        [36.767134199668,-1.341181597630497],
+        [36.77531856173233,-1.336916405472111],
+        [36.79848129016496,-1.334923627374748],
+        [36.84760358494509,-1.327081544529206],
+    ]
+
     var gps;
     var styles = [
         {
@@ -87,21 +111,28 @@ function loadGPSMap(track, markers, center)
         styles: styles,
     });
 
-    var track_path = new Array();
+    var last = undefined;
     for (var index in track)
     {
         marker = track[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
-        track_path.push(gps);
+        console.log(marker);
+        if(last !== undefined)
+        {
+            if(insidePoly(mugu_polygon, [marker[1], marker[0]]))
+                color = "#428BCA";
+            else
+                color = "#FF0000";
+            new google.maps.Polyline({
+                path: [last, gps],
+                strokeColor: color,
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                map: map
+            });
+        }
+        last = gps;
     }
-
-    new google.maps.Polyline({
-        path: track_path,
-        strokeColor: "#428BCA",
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
-        map: map
-    });
 
     for (var index in markers)
     {
@@ -152,4 +183,16 @@ function reorder(obj){
     for(var index in keys)
         temp[keys[index]] = reorder(obj[keys[index]]);       
     return temp;
+}
+
+
+function insidePoly(poly, test)
+{
+    var nvert = poly.length;
+    var c = false;
+    for (var i = 0, j = nvert - 1; i < nvert; j = i++)
+        if ( ((poly[i][1] > test[1]) != (poly[j][1] > test[1])) &&
+        (test[0] < (poly[j][0]-poly[i][0]) * (test[1]-poly[i][1]) / (poly[j][1]-poly[i][1]) + poly[i][0]) )
+            c = !c;
+    return c
 }
