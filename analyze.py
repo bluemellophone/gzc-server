@@ -127,9 +127,9 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
                 for reported_unixtime, offset in
                 zip(reported_time_list, offset_list)
             ]
-            ibs.set_image_unixtime(gid_list, actual_unixtime_list)
+            ibs.set_image_unixtime(gid_list, actual_unixtime_list, duplicate_behavior='filter')
+            ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list, duplicate_behavior='filter')
 
-            ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list)
             print('[analyze] starting detection for %d images and species %s...' % (len(valid_path_list), species))
             qaids_list = ibs.detect_random_forest(gid_list, species=species)
             qaid_list, reverse_list = ut.invertible_flatten2(qaids_list)
