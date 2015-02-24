@@ -22,12 +22,12 @@ from os import listdir
 from shutil import copy  # NOQA
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[analyze]')
 
-DEFAULT_DATA_DIR = 'data'
-SERVER_IP_ADDRESS = '127.0.0.1'
-SERVER_PORT = 5000
 
-FRACTION_FOR_REVIEW = 0.8  # fraction of the input images for which generated results are required
-MINIMUM_FOR_REVIEW = 5  # minimum number of results required
+DEFAULT_DATA_DIR = 'data'
+DEFAULT_SERVER_IP_ADDRESS = '127.0.0.1'
+DEFAULT_SERVER_PORT = 5000
+DEFAULT_FRACTION_FOR_REVIEW = 0.8
+DEFAULT_MINIMUM_FOR_REVIEW = 8
 
 
 # takes an image and returns a copy such that the smaller dimension is resized to new_size
@@ -49,7 +49,8 @@ def resize_img_by_smaller_dimension(img_in, new_size):
     return img_out, ratio
 
 
-def preprocess_fpath(ibs, species_dict, path_to_file):
+def preprocess_fpath(ibs, species_dict, path_to_file, params):
+    data_dir = params.get('DEFAULT_DATA_DIR', DEFAULT_DATA_DIR)
     if not exists(path_to_file):
         print("[analyze] The path_to_file %r no longer exists, skipping..." % (path_to_file,))
         return None
@@ -76,7 +77,7 @@ def preprocess_fpath(ibs, species_dict, path_to_file):
 
     # Add contributor to the database for this person
     contrib_row_id = ibs.add_contributors(['IBEIS GZC Participant (%s, %s)' % (car, person, )])[0]  # NOQA
-    offset_path = join(DEFAULT_DATA_DIR, 'images', car, person, 'offset.json')
+    offset_path = join(data_dir, 'images', car, person, 'offset.json')
     with open(offset_path, 'r') as off:
         data = json.load(off)
         offset = data.get('offset', 0.0)
@@ -85,11 +86,11 @@ def preprocess_fpath(ibs, species_dict, path_to_file):
     return car, person, animal, species, offset, contrib_row_id
 
 
-def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
+def analyze(ibs, qreq_dict, species_dict, path_to_file_list, params):
     print('[analyze] Beginning Analyze')
     print('[analyze] Received %d file paths' % (len(path_to_file_list)))
     # decompose the filename to get the car/person to whom this image belongs
-    info_tup_list = [preprocess_fpath(ibs, species_dict, path_to_file) for path_to_file in path_to_file_list]
+    info_tup_list = [preprocess_fpath(ibs, species_dict, path_to_file, params) for path_to_file in path_to_file_list]
     is_valid_list = [tup_ is not None for tup_ in info_tup_list]
 
     # get the ungrouped tuples that were not None
@@ -155,19 +156,20 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
             with ut.Indenter('[POSTPROCESS]'):
                 for _tup in zip(valid_path_list, detection_bboxes_list, qreses_list,
                                 car_list, person_list, animal_list, gid_list, qaids_list):
-                    postprocess_result(ibs, _tup)
+                    postprocess_result(ibs, _tup, params)
 
             with ut.Indenter('[REVIEW_CHECK]'):
                 for car, person in zip(car_list, person_list):
-                    check_if_need_review(person, car)
+                    check_if_need_review(person, car, params)
 
 
-def postprocess_result(ibs, _tup):
+def postprocess_result(ibs, _tup, params):
     path_to_file, detection_bbox_list, qres_list, car, person, animal, original_gid, qaids = _tup
 
+    data_dir = params.get('DATA_DIR', DEFAULT_DATA_DIR)
+
     # create the results directory for the given car/person/animal
-    data_dir = DEFAULT_DATA_DIR
-    analysis_dir = join(DEFAULT_DATA_DIR, 'analysis')
+    analysis_dir = join(data_dir, 'analysis')
     car_dir = join(analysis_dir, car)
     person_dir = join(car_dir, person)
     animal_dir = join(person_dir, animal)
@@ -256,34 +258,39 @@ def postprocess_result(ibs, _tup):
                 json.dump(data, ofile)
 
 
-def check_if_need_review(person, car):
+def check_if_need_review(person, car, params):
+        data_dir = params.get('DATA_DIR', DEFAULT_DATA_DIR)
+        server_ip_address = params.get('SERVER_IP_ADDRESS', DEFAULT_SERVER_IP_ADDRESS)
+        server_port = params.get('SERVER_PORT', DEFAULT_SERVER_PORT)
+        fraction_for_review = params.get('FRACTION_FOR_REVIEW', DEFAULT_FRACTION_FOR_REVIEW)
+        minimum_for_review = params.get('MINIMUM_FOR_REVIEW', DEFAULT_MINIMUM_FOR_REVIEW)
         # we need to count how many input files we have received and how many
         # output files have been generated, so that we know if we can send a
         # review request for this directory
 
         # only count files of image types
-        giraffe_input_dir = join(DEFAULT_DATA_DIR, 'images', car, person, 'giraffe')
+        giraffe_input_dir = join(data_dir, 'images', car, person, 'giraffe')
         # perhaps this person never submitted a giraffe
         if isdir(giraffe_input_dir):
             num_input_giraffes = len([f for f in listdir(giraffe_input_dir) if f.endswith(tuple(ut.IMG_EXTENSIONS))])
         else:
             num_input_giraffes = 0
 
-        zebra_input_dir = join(DEFAULT_DATA_DIR, 'images', car, person, 'zebra')
+        zebra_input_dir = join(data_dir, 'images', car, person, 'zebra')
         if isdir(zebra_input_dir):
             num_input_zebras = len([f for f in listdir(zebra_input_dir) if f.endswith(tuple(ut.IMG_EXTENSIONS))])
         else:
             num_input_zebras = 0
 
         # only count files of json type, do not count confidences.json
-        giraffe_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')
+        giraffe_output_dir = join(data_dir, 'analysis', car, person, 'giraffe')
         # perhaps no giraffes have been generated as output yet
         if isdir(giraffe_output_dir):
             num_output_giraffes = len([f for f in listdir(giraffe_output_dir) if (f.endswith('.json') and f != 'confidences.json')])
         else:
             num_output_giraffes = 0
 
-        zebra_output_dir = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'zebra')
+        zebra_output_dir = join(data_dir, 'analysis', car, person, 'zebra')
         if isdir(zebra_output_dir):
             num_output_zebras = len([f for f in listdir(zebra_output_dir) if (f.endswith('.json') and f != 'confidences.json')])
         else:
@@ -294,22 +301,25 @@ def check_if_need_review(person, car):
         num_output = num_output_giraffes + num_output_zebras
 
         # this file will be written once the directory has been sent for review
-        review_indicator_file = join(DEFAULT_DATA_DIR, 'analysis', car, person, 'review.flag')
-        fraction_check = (num_output >= (FRACTION_FOR_REVIEW * num_input))
-        minimum_check = (num_output >= MINIMUM_FOR_REVIEW)
+        review_indicator_file = join(data_dir, 'analysis', car, person, 'review.flag')
+        fraction_check = (num_output >= (fraction_for_review * num_input))
+        minimum_check = (num_output >= minimum_for_review)
         existence_check = (not isfile(review_indicator_file))
-        print('[analyze] checking if a review is ready for %s' % (join(DEFAULT_DATA_DIR, 'analysis', car, person, 'giraffe')))
-        print('[analyze]  minimum files required? %d (minimum = %d) ===> %s' % (num_output, MINIMUM_FOR_REVIEW, minimum_check))
-        print('[analyze]  necessary fraction of input files? %.2f * %d = %.2f le? %d ===> %s' % (FRACTION_FOR_REVIEW, num_input, FRACTION_FOR_REVIEW * num_input, num_output, fraction_check))
-        print('[analyze]  has this directory not been review before? %s' % (existence_check))
+        print('\n[analyze] checking if a review is ready for %s' % (join(data_dir, 'analysis', car, person, 'giraffe')))
+        print('[analyze]  minimum files required? %d (minimum = %d) ===> %s' % (num_output, minimum_for_review, minimum_check))
+        print('[analyze]  necessary fraction of input files? %.2f * %d = %.2f le? %d ===> %s' % (fraction_for_review, num_input, fraction_for_review * num_input, num_output, fraction_check))
+        print('[analyze]  has this directory not been reviewed before? %s' % (existence_check))
         if minimum_check and \
            fraction_check and \
            existence_check:
-            review_url = 'http://%s:%s/review/%s/%s' % (SERVER_IP_ADDRESS, SERVER_PORT, car, person)
+            review_url = 'http://%s:%s/review/%s/%s' % (server_ip_address, server_port, car, person)
+            print('[analyze] *** requesting review at: %s ***' % (review_url))
             webbrowser.open(review_url)
 
             with open(review_indicator_file, 'w') as ofile:
                 ofile.write('this file tells the observer that this directory has already been sent for review and should not be sent again')
+        else:
+            print('[analyze] not ready for review')
 
 
 if __name__ == '__main__':

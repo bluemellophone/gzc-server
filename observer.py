@@ -19,21 +19,42 @@ from os.path import join, split, splitext, isfile, exists, realpath
 import utool as ut
 from ibeis import constants as const
 
-# TODO: how long should this wait be?
-# how long should the watchdog wait before it assumes a new file is fully written?
+
+# PARAMETERS FOR ANALYZE.PY AND OBSERVER.PY
+#
+# DEFAULT_DATA_DIR:    The root directory where the analysis, images, gps, and pdfs directories are.
+# FILE_CREATION_WAIT:  How long the observer should wait after the last file in
+#                      a batch is created, before the entire batch is sent for processing.  This
+#                      avoids sending half-written image files to IBEIS.
+# MIN_TASKS:           The minimum number of images in the task list before the task list
+#                      is sent for processing.
+# TASK_TIMEOUT:        If the MIN_TASKS requirement is not satisfied, this is how long
+#                      the observer will wait before sending the whole task list regardless.
+# SERVER_IP_ADDRESS:   If set here, applies to the analyze module too.
+# SERVER_PORT:         If set here, applies to the analyze module too.
+# FRACTION_FOR_REVIEW: If N and M are the number of input images and output
+#                      images respectively, then this directory needs to satisfy M >=
+#                      FRACTION_FOR_REVIEW * N to be considered for review.
+# MINIMUM_FOR_REVIEW:  The minimum number of files required in a directory before it may be sent for review.
+
+# parameters used by the observer
+DEFAULT_DATA_DIR = 'data'
 FILE_CREATION_WAIT = 5
-# how many pending tasks should there be before they are dispatched?
 MIN_TASKS = 8
-# if there are pending tasks, how long should the observer wait before
-# dispatching them regardless of whether they are enough?
 TASK_TIMEOUT = 5
+
+# parameters that will be passed to the analyze module
+analyze_params = {'DEFAULT_DATA_DIR': DEFAULT_DATA_DIR,
+                  'SERVER_IP_ADDRESS': '127.0.0.1',
+                  'SERVER_PORT': 5000,
+                  'FRACTION_FOR_REVIEW': 0.8,
+                  'MINIMUM_FOR_REVIEW': 8}
 
 ibeis._preload()
 
-
 ibs = ibeis.opendb('PZ_MTEST')
 
-# build the query request objects for zebras and giraffes
+
 # TODO: update the species name for GIRAFFE_MASAI when the DB is ready
 # species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE_MASAI}
 species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
@@ -41,7 +62,7 @@ species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAF
 daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
 daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
 
-
+# build the query request objects for zebras and giraffes
 qreq_zebra = ibs.new_query_request([], daid_list_zebra)
 qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
 
@@ -107,7 +128,7 @@ def process_images(fname_list):
     print('[observer] received %d requests' % (len(fname_list)))
     # time.sleep(3)  # fake processing the request
     try:
-        analyze.analyze(ibs, qreq_dict, species_dict, fname_list)
+        analyze.analyze(ibs, qreq_dict, species_dict, fname_list, analyze_params)
         print('[observer] completed %d requests' % (len(fname_list)))
         return fname_list
     except Exception:
@@ -149,13 +170,14 @@ def recover_state(queue, data_dir, results_dir):
 
 
 if __name__ == '__main__':
-    results_dir = 'data/analysis'
-    path_to_watch = 'data/images'
+    data_dir = DEFAULT_DATA_DIR
+    results_dir = join(data_dir, 'analysis')
+    path_to_watch = join(data_dir, 'images')
 
     # need to check that the directory we are watching actually exists
-    if not exists('data'):
-        mkdir('data')
-    images_dir = join('data', 'images')
+    if not exists(data_dir):
+        mkdir(data_dir)
+    images_dir = join(data_dir, 'images')
     if not exists(images_dir):
         mkdir(images_dir)
 
