@@ -25,7 +25,7 @@ from ibeis import constants as const
 # DEFAULT_DATA_DIR:    The root directory where the analysis, images, gps, and pdfs directories are.
 # FILE_CREATION_WAIT:  How long the observer should wait after the last file in
 #                      a batch is created, before the entire batch is sent for processing.  This
-#                      avoids sending half-written image files to IBEIS.
+#                      tries to avoid sending half-written image files to IBEIS.
 # MIN_TASKS:           The minimum number of images in the task list before the task list
 #                      is sent for processing.
 # TASK_TIMEOUT:        If the MIN_TASKS requirement is not satisfied, this is how long
@@ -39,9 +39,10 @@ from ibeis import constants as const
 
 # parameters used by the observer
 DEFAULT_DATA_DIR = 'data'
-FILE_CREATION_WAIT = 5
+FILE_CREATION_WAIT = 5  # seconds
 MIN_TASKS = 8
-TASK_TIMEOUT = 5
+TASK_TIMEOUT = 5  # seconds
+IBEIS_DB = 'PZ_MTEST'
 
 # parameters that will be passed to the analyze module
 analyze_params = {'DEFAULT_DATA_DIR': DEFAULT_DATA_DIR,
@@ -51,8 +52,7 @@ analyze_params = {'DEFAULT_DATA_DIR': DEFAULT_DATA_DIR,
                   'MINIMUM_FOR_REVIEW': 8}
 
 ibeis._preload()
-
-ibs = ibeis.opendb('PZ_MTEST')
+ibs = ibeis.opendb(IBEIS_DB)
 
 
 # TODO: update the species name for GIRAFFE_MASAI when the DB is ready
