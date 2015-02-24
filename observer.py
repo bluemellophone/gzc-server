@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from __future__ import print_function
 
 import sys
@@ -15,13 +16,14 @@ import multiprocessing
 from os import walk, mkdir
 from os.path import join, split, splitext, isfile, exists, realpath
 
-from utool import IMG_EXTENSIONS
+import utool as ut
+from ibeis import constants as const
 
 # TODO: how long should this wait be?
 # how long should the watchdog wait before it assumes a new file is fully written?
 FILE_CREATION_WAIT = 5
 # how many pending tasks should there be before they are dispatched?
-MIN_TASKS = 3
+MIN_TASKS = 8
 # if there are pending tasks, how long should the observer wait before
 # dispatching them regardless of whether they are enough?
 TASK_TIMEOUT = 5
@@ -32,8 +34,13 @@ ibeis._preload()
 ibs = ibeis.opendb('PZ_MTEST')
 
 # build the query request objects for zebras and giraffes
-daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.ZEB_PLAIN)
-daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=ibeis.constants.Species.GIRAFFE)
+# TODO: update the species name for GIRAFFE_MASAI when the DB is ready
+# species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE_MASAI}
+species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
+
+daid_list_zebra = ibs.get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
+daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
+
 
 qreq_zebra = ibs.new_query_request([], daid_list_zebra)
 qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
@@ -41,8 +48,9 @@ qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
 qreq_dict = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
 
 
-# to be valid the file must be in a directory named "zebra" or "giraffe"
+# all checks must be executed for True and any check that fails must return False
 def is_valid_user_photo(path_to_file):
+    # check existence first
     if not isfile(path_to_file):
         return False
     animal_path, fname = split(path_to_file)
@@ -54,15 +62,20 @@ def is_valid_user_photo(path_to_file):
     person = person.lower()
     animal = animal.lower()
 
-    if person.isalpha() and car.isalnum() and (animal == 'zebra' or animal == 'giraffe'):
-        return True
-    else:
+    # check that the file is in a directory named "zebra" or "giraffe"
+    if not (person.isalpha() and car.isalnum() and (animal == 'zebra' or animal == 'giraffe')):
         return False
+
+    # check for valid image files
+    if not fname.endswith(tuple(ut.IMG_EXTENSIONS)):
+        return False
+
+    return True
 
 
 class NewImageHandler(PatternMatchingEventHandler):
     # we only want to check for new image files
-    patterns = ['*%s' % ext for ext in IMG_EXTENSIONS]
+    patterns = ['*%s' % ext for ext in ut.IMG_EXTENSIONS]
 
     def __init__(self, queue):
         self.queue = queue
@@ -94,7 +107,7 @@ def process_images(fname_list):
     print('[observer] received %d requests' % (len(fname_list)))
     # time.sleep(3)  # fake processing the request
     try:
-        analyze.analyze(ibs, qreq_dict, fname_list)
+        analyze.analyze(ibs, qreq_dict, species_dict, fname_list)
         print('[observer] completed %d requests' % (len(fname_list)))
         return fname_list
     except Exception:
@@ -123,7 +136,7 @@ def recover_state(queue, data_dir, results_dir):
         file_to_check_json = join(results_dir, '%s_0_data.json' % (path))
 
         # we need to check if the match file exists, but need to check all extensions
-        files_to_check_match = [join(results_dir, '%s_0_match%s' % (path, _ext)) for _ext in IMG_EXTENSIONS]
+        files_to_check_match = [join(results_dir, '%s_0_match%s' % (path, _ext)) for _ext in ut.IMG_EXTENSIONS]
         files_to_check_match_existence = [isfile(fname) for fname in files_to_check_match]
 
         # if the either the json file does't exist or no match file is found, re-analyze this file
@@ -183,7 +196,7 @@ if __name__ == '__main__':
                 else:
                     print('[observer] removed duplicate file: %s' % (fname))
 
-            if len(task_list) > MIN_TASKS or time_out < 0:
+            if len(task_list) >= MIN_TASKS or time_out < 0:
                 print('[observer] process triggered! reasons:\n[observer]  enough tasks? %s\n[observer]  timeout? %s' % (len(task_list) > MIN_TASKS, time_out < 0))
                 print('[observer] waiting for %d seconds before dispatching...' % (FILE_CREATION_WAIT))
                 time.sleep(FILE_CREATION_WAIT)
@@ -203,5 +216,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('[observer] shutting down!')
         observer.stop()
-
         observer.join()

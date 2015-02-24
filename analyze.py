@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from __future__ import absolute_import, division, print_function
 
 import cv2
@@ -25,7 +26,7 @@ DEFAULT_DATA_DIR = 'data'
 SERVER_IP_ADDRESS = '127.0.0.1'
 SERVER_PORT = 5000
 
-FRACTION_FOR_REVIEW = 0.5  # fraction of the input images for which generated results are required
+FRACTION_FOR_REVIEW = 0.8  # fraction of the input images for which generated results are required
 MINIMUM_FOR_REVIEW = 5  # minimum number of results required
 
 
@@ -48,7 +49,7 @@ def resize_img_by_smaller_dimension(img_in, new_size):
     return img_out, ratio
 
 
-def preprocess_fpath(ibs, path_to_file):
+def preprocess_fpath(ibs, species_dict, path_to_file):
     if not exists(path_to_file):
         print("[analyze] The path_to_file %r no longer exists, skipping..." % (path_to_file,))
         return None
@@ -64,11 +65,11 @@ def preprocess_fpath(ibs, path_to_file):
 
     if animal == 'zebra':
         # for we are only concerned with plains zebras
-        species = const.Species.ZEB_PLAIN
+        species = species_dict['zebra']
     elif animal == 'giraffe':
-        species = const.Species.GIRAFFE
+        species = species_dict['giraffe']
     else:
-        print('[analyze] %s is not a valid user photo (no cause for concern, might just be the timestamp)' % (path_to_file))
+        print('[analyze] %s is not a valid user photo' % (path_to_file))
         return None  # this is some other image, e.g., the timestamp clock
 
     print('[analyze] received request for car %s, person %s, to analyze file %s which contains an animal of type %s' % (car, person, path_to_file, animal))
@@ -84,11 +85,11 @@ def preprocess_fpath(ibs, path_to_file):
     return car, person, animal, species, offset, contrib_row_id
 
 
-def analyze(ibs, qreq_dict, path_to_file_list):
+def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
     print('[analyze] Beginning Analyze')
     print('[analyze] Received %d file paths' % (len(path_to_file_list)))
     # decompose the filename to get the car/person to whom this image belongs
-    info_tup_list = [preprocess_fpath(ibs, path_to_file) for path_to_file in path_to_file_list]
+    info_tup_list = [preprocess_fpath(ibs, species_dict, path_to_file) for path_to_file in path_to_file_list]
     is_valid_list = [tup_ is not None for tup_ in info_tup_list]
 
     # get the ungrouped tuples that were not None
@@ -115,8 +116,8 @@ def analyze(ibs, qreq_dict, path_to_file_list):
         animal = animal_list[0]
         species = species_list[0]
         with ut.Indenter('[GROUP-%d-%s]' % (groupx, species)):
-            assert ((animal == 'zebra' and species == const.Species.ZEB_PLAIN) or
-                    (animal == 'giraffe' and species == const.Species.GIRAFFE)), 'animal/species mismatch!'
+            assert ((animal == 'zebra' and species == species_dict['zebra']) or
+                    (animal == 'giraffe' and species == species_dict['giraffe'])), 'animal/species mismatch!'
             # Add image to database
             gid_list = ibs.add_images(valid_path_list, auto_localize=False)
 
@@ -232,7 +233,7 @@ def postprocess_result(ibs, _tup):
         # write the detection confidence(s) for this image to the json file
         score = str(qres.aid2_score[match_aid])
         confidence = {'%s_%d' % (fname_base, qx): score}
-        print(confidence)
+
         confidences_file = join(animal_dir, 'confidences.json')
         # check if this is the first detection for this person
         if not isfile(confidences_file):
@@ -321,8 +322,10 @@ if __name__ == '__main__':
     person_letter = 'D'
     ibs = ibeis.opendb(db=opts.db)
 
-    daid_list_zebra   = ibs.get_valid_aids(is_exemplar=True, species=const.Species.ZEB_PLAIN)
-    daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=const.Species.GIRAFFE)
+    species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
+
+    daid_list_zebra   = ibs.get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
+    daid_list_giraffe = ibs.get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
     qreq_zebra   = ibs.new_query_request([], daid_list_zebra)
     qreq_giraffe = ibs.new_query_request([], daid_list_giraffe)
 
@@ -344,11 +347,11 @@ if __name__ == '__main__':
     ]
     both_list = pz_gpath_list + gir_gpath_list
 
-    #analyze(ibs, qreq_dict, pz_gpath_list)
-    #analyze(ibs, qreq_dict, gir_gpath_list)
+    #analyze(ibs, qreq_dict, species_dict, pz_gpath_list)
+    #analyze(ibs, qreq_dict, species_dict, gir_gpath_list)
 
     # Test multiple images of different same species
-    analyze(ibs, qreq_dict, both_list)
+    analyze(ibs, qreq_dict, species_dict, both_list)
 
     print('\n\n ***** TEST RESULTS ***** \n\n')
     result_list = []
