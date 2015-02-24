@@ -141,8 +141,10 @@ def analyze(ibs, qreq_dict, species_dict, path_to_file_list):
 
             # because qreq_ is persistent we need only to update the qaid_list
             qreq_ = qreq_dict[animal]  # there is a qreq_ for each species
-            qreq_.set_external_qaids(qaid_list)
-            qres_list = ibs.query_chips(qreq_=qreq_, verbose=False)
+            qaid_list_unique, unique_inverse = np.unique(qaid_list, return_inverse=True)
+            qreq_.set_external_qaids(qaid_list_unique)
+            qres_list_unique = ibs.query_chips(qreq_=qreq_, verbose=False)
+            qres_list = ut.list_take(qres_list_unique, unique_inverse)
 
             # so that we can draw a new bounding box for each detection
             detection_bbox_list = ibs.get_annot_verts(qaid_list)
