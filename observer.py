@@ -5,6 +5,7 @@ from __future__ import print_function
 import sys
 import time
 import ibeis
+import optparse
 import analyze  # NOQA
 import traceback
 
@@ -18,6 +19,18 @@ from os.path import join, split, splitext, isfile, exists, realpath
 
 import utool as ut
 from ibeis import constants as const
+
+
+# NOTES ON MANUAL MODE
+# The observer also provides a manual mode that may be activated by specifying
+# the --manual flag, as well as the --dir flag followed by the directory to
+# process.  All files in this directory will be checked recursively, but only
+# the ones that are found to be valid user photos (as defined by
+# is_valid_user_photo) will be sent for analysis.  Any images for which results
+# have already been generated will have their results overwritten!  If
+# available, a review will still be triggered.  All options are still as
+# specified below.
+# Example usage: ./observer.py --manual --dir /home/user/data/images/2red/b
 
 
 # PARAMETERS FOR ANALYZE.PY AND OBSERVER.PY
@@ -193,61 +206,96 @@ if __name__ == '__main__':
     if not exists(images_dir):
         mkdir(images_dir)
 
-    queue = multiprocessing.Queue()
+    parser = optparse.OptionParser()
+    parser.add_option(
+        '-m', '--manual',
+        action='store_true',
+        dest='manual',
+        help='manual override of the observer')
+    parser.add_option(
+        '-d', '--dir',
+        help='directory to process manually',
+        default=None)
 
-    # create the file observer that will watch for new files
-    observer = Observer()
-    observer.schedule(NewImageHandler(queue), path=path_to_watch, recursive=True)
-    observer.start()
+    opts, args = parser.parse_args()
 
-    if observer.isAlive():
-        print('\n\n***** OBSERVER IS LIVE *****\n\n')
+    # general use case - automatic file detection
+    if not opts.manual:
+        queue = multiprocessing.Queue()
+
+        # create the file observer that will watch for new files
+        observer = Observer()
+        observer.schedule(NewImageHandler(queue), path=path_to_watch, recursive=True)
+        observer.start()
+
+        if observer.isAlive():
+            print('\n\n***** OBSERVER IS LIVE *****\n\n')
+        else:
+            print('[observer] the observer failed to start!')
+            exit(1)
+
+        # check if there are input images without results
+        print('[observer] attempting to recover state...')
+        num_recovered = recover_state(queue, path_to_watch, results_dir)
+        print('[observer] found %d file(s) that are missing results to add to the queue' % (num_recovered))
+        print('[observer] observer is now monitoring %s for new files' % (path_to_watch))
+
+        task_list = []
+        time_out = TASK_TIMEOUT
+        # process new images as the observer puts them in the queue
+        try:
+            while True:
+                time.sleep(1)
+                if task_list:
+                    print('[observer] timeout = %d with %d tasks waiting (need %d to process)' % (time_out, len(task_list), MIN_TASKS))
+                    time_out -= 1
+
+                while not queue.empty():
+                    fname = queue.get()
+                    if fname not in task_list:
+                        print('[observer] unpacking task: %s' % (fname))
+                        task_list.append(fname)
+                    else:
+                        print('[observer] removed duplicate file: %s' % (fname))
+
+                if len(task_list) >= MIN_TASKS or time_out < 0:
+                    print('[observer] process triggered! reasons:\n[observer]  enough tasks? %s\n[observer]  timeout? %s' % (len(task_list) > MIN_TASKS, time_out < 0))
+                    print('[observer] waiting for %d seconds before dispatching...' % (FILE_CREATION_WAIT))
+                    time.sleep(FILE_CREATION_WAIT)
+                    result_list = process_images(task_list)
+                    task_list = []
+                    time_out = TASK_TIMEOUT
+
+                    if isinstance(result_list, tuple):
+                        type_, ex, tb = result_list
+                        print('\n\n***** EXCEPTION *****\n\n')
+                        print('[observer] type_ = %r' % (type_))
+                        print('[observer] ex = %r' % (ex))
+                        traceback.print_tb(tb)
+
+                    print('[observer] still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s, len(task_list) = %d)' % (path_to_watch, observer.isAlive(), queue.empty(), len(task_list)))
+
+        except KeyboardInterrupt:
+            print('[observer] shutting down!')
+            observer.stop()
+            observer.join()
+    # this code only executes when the observer is in manual mode
     else:
-        print('[observer] the observer failed to start!')
-        exit(1)
+        print('[observer] running with manual override...')
+        print('[observer] directory to process = %s' % (opts.dir))
+        if opts.dir is None or not exists(opts.dir):
+            print('[observer] the directory to process does not exist!')
+            print('[observer] usage: ./observer.py --manual --dir /home/user/data/images/2red/b')
+            exit(1)
+        image_files = []
+        for root, dirs, files in walk(opts.dir):
+            for fname in files:
+                full_path = join(root, fname)
+                if is_valid_user_photo(full_path):
+                    image_files.append(full_path)
+        print('[observer] found the following files for manual processing:')
+        for fname in image_files:
+            print('[observer]  %s' % (fname))
 
-    # check if there are input images without results
-    print('[observer] attempting to recover state...')
-    num_recovered = recover_state(queue, path_to_watch, results_dir)
-    print('[observer] found %d file(s) that are missing results to add to the queue' % (num_recovered))
-    print('[observer] observer is now monitoring %s for new files' % (path_to_watch))
-
-    task_list = []
-    time_out = TASK_TIMEOUT
-    # process new images as the observer puts them in the queue
-    try:
-        while True:
-            time.sleep(1)
-            if task_list:
-                print('[observer] timeout = %d with %d tasks waiting (need %d to process)' % (time_out, len(task_list), MIN_TASKS))
-                time_out -= 1
-
-            while not queue.empty():
-                fname = queue.get()
-                if fname not in task_list:
-                    print('[observer] unpacking task: %s' % (fname))
-                    task_list.append(fname)
-                else:
-                    print('[observer] removed duplicate file: %s' % (fname))
-
-            if len(task_list) >= MIN_TASKS or time_out < 0:
-                print('[observer] process triggered! reasons:\n[observer]  enough tasks? %s\n[observer]  timeout? %s' % (len(task_list) > MIN_TASKS, time_out < 0))
-                print('[observer] waiting for %d seconds before dispatching...' % (FILE_CREATION_WAIT))
-                time.sleep(FILE_CREATION_WAIT)
-                result_list = process_images(task_list)
-                task_list = []
-                time_out = TASK_TIMEOUT
-
-                if isinstance(result_list, tuple):
-                    type_, ex, tb = result_list
-                    print('\n\n***** EXCEPTION *****\n\n')
-                    print('[observer] type_ = %r' % (type_))
-                    print('[observer] ex = %r' % (ex))
-                    traceback.print_tb(tb)
-
-                print('[observer] still monitoring %s for new files (observer.isAlive() = %s, queue.empty() = %s, len(task_list) = %d)' % (path_to_watch, observer.isAlive(), queue.empty(), len(task_list)))
-
-    except KeyboardInterrupt:
-        print('[observer] shutting down!')
-        observer.stop()
-        observer.join()
+        process_images(image_files)
+        print('done')
