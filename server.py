@@ -352,23 +352,25 @@ def print_pdf(car, person):
 def images():
     # Process images for car and person
     extra = {}
-    car_color     = request.form.get('car_color', '').lower()
     car_number    = request.form.get('car_number', '').lower()
+    car_color     = request.form.get('car_color', '').lower()
     person        = request.form.get('person_letter', '').lower()
     time_hour     = request.form.get('image_first_time_hour', '')
     time_minute   = request.form.get('image_first_time_minute', '')
 
     # Validate
-    if car_color not in CAR_COLORS:
-        return sf.response(101, '[images] Car color invalid')
     if car_number not in CAR_NUMBER:
         return sf.response(102, '[images] Car number invalid')
+    if car_color not in CAR_COLORS:
+        return sf.response(101, '[images] Car color invalid')
     if person not in PERSON_LETTERS:
         return sf.response(103, '[images] Person letter invalid')
     if time_hour not in TIME_HOUR:
         return sf.response(104, '[images] Time (hour) invalid')
     if time_minute not in TIME_MINUTE:
         return sf.response(105, '[images] Time (minute) invalid')
+
+    return sf.response(999, '[images] TEST')
 
     # Get image archive
     image_archive = request.files.get('image_archive', None)
@@ -432,20 +434,22 @@ def images():
 def gps():
     # Process gps for car
     extra = {}
-    car_color   = request.form.get('car_color', '').lower()
     car_number  = request.form.get('car_number', '').lower()
+    car_color   = request.form.get('car_color', '').lower()
     time_hour   = request.form.get('gps_start_time_hour', '')
     time_minute = request.form.get('gps_start_time_minute', '')
 
     # Validate
-    if car_color not in CAR_COLORS:
-        return sf.response(201, '[gps] Car color invalid')
     if car_number not in CAR_NUMBER:
         return sf.response(202, '[gps] Car number invalid')
+    if car_color not in CAR_COLORS:
+        return sf.response(201, '[gps] Car color invalid')
     if time_hour not in TIME_HOUR:
         return sf.response(204, '[gps] Time (hour) invalid')
     if time_minute not in TIME_MINUTE:
         return sf.response(205, '[gps] Time (minute) invalid')
+
+    return sf.response(999, '[gps] TEST')
 
     # Get GPS data from GPX file
     gps_data   = request.files.get('gps_data', None)
