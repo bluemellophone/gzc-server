@@ -37,14 +37,16 @@ CAR_NUMBER = map(str, range(1, 26))  # 50
 PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f']  # , 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
 TIME_HOUR = map(str, range(0, 24))
 TIME_MINUTE = map(str, range(0, 60))
+TRACK_NUMBERS = map(str, range(1, 6))
 
 # Defaults
 DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
 # DEFAULT_PRINTER_NAME = 'MRC-Lab-Printer'
-DEFAULT_PRINTER_NAME = '_128_213_17_40'
-GMT_OFFSET = -5  # Troy
-# GMT_OFFSET = 3  # Nairobi
+# DEFAULT_PRINTER_NAME = '_128_213_17_40'
+DEFAULT_PRINTER_NAME = 'printer'
+# GMT_OFFSET = -5  # Troy
+GMT_OFFSET = 3  # Nairobi
 
 # Application
 app = flask.Flask(__name__)
@@ -278,9 +280,15 @@ def review(car, person):
 
     # Get analysis for person and friends
     for letter in analysis_dict.keys():
+        # Load offset from json
+        person_dir = join('data', 'images', car_str, letter)
+        offset_path = join(person_dir, 'offset.json')
+        with open(offset_path, 'r') as off:
+            data = json.load(off)
+            offset = data.get('offset', 0.0)
         analysis_list = []
         for species in ['zebra', 'giraffe']:
-            analysis_path = join('data', 'analysis', car_str, person, species)
+            analysis_path = join('data', 'analysis', car_str, letter, species)
             confidence_path = join(analysis_path, 'confidences.json')
             if exists(confidence_path):
                 with open(confidence_path, 'r') as f:
@@ -293,6 +301,7 @@ def review(car, person):
                     metadata_list = []
                     with open(join(analysis_path, file_prefix + '_data.json')) as f:
                         data = json.load(f)
+                        data['original_image_unixtime'] += offset
                         for key in sorted(data.keys()):
                             metadata = 'metadata-%s=%s' % (key.replace("_", "-"), data[key], )
                             metadata_list.append(metadata)
@@ -417,6 +426,9 @@ def images():
     actual_time = datetime.datetime.today()
     actual_time = actual_time.replace(hour=int(time_hour), minute=int(time_minute), second=0, microsecond=0)
     actual_time = time.mktime(actual_time.timetuple())
+    # mysql_format = '%Y-%m-%d %H:%M:%S'
+    # print("Actual Time  : %s" % (actual_time.strftime(mysql_format), ))
+    # print("Reported Time: %s" % (reported_time.strftime(mysql_format), ))
     offset = actual_time - reported_time
     print("Time Sync - Reported: %s, Actual %s [ OFFSET: %f ]" % (reported_time, actual_time, offset, ))
     # Write offset to file
@@ -432,10 +444,11 @@ def images():
 def gps():
     # Process gps for car
     extra = {}
-    car_number  = request.form.get('car_number', '').lower()
-    car_color   = request.form.get('car_color', '').lower()
-    time_hour   = request.form.get('gps_start_time_hour', '')
-    time_minute = request.form.get('gps_start_time_minute', '')
+    car_number   = request.form.get('car_number', '').lower()
+    car_color    = request.form.get('car_color', '').lower()
+    time_hour    = request.form.get('gps_start_time_hour', '')
+    time_minute  = request.form.get('gps_start_time_minute', '')
+    track_number = request.form.get('track_number', '')
 
     # Validate
     if car_number not in CAR_NUMBER:
@@ -446,6 +459,8 @@ def gps():
         return sf.response(204, '[gps] Time (hour) invalid')
     if time_minute not in TIME_MINUTE:
         return sf.response(205, '[gps] Time (minute) invalid')
+    if track_number not in TRACK_NUMBERS:
+        return sf.response(205, '[gps] Track number invalid')
 
     # return sf.response(999, '[gps] TEST')
 
@@ -465,6 +480,9 @@ def gps():
     car_dir = sf.ensure_structure(DEFAULT_DATA_DIR, 'gps', car_number, car_color)
     input_path  = join(car_dir, 'track.gpx')
     output_path = join(car_dir, 'track.json')
+    track_path  = join(car_dir, '%s.track' % (track_number, ))
+    with open(track_path, 'w') as track:
+        track.write('')
 
     # Save track.gpx into folder
     try:

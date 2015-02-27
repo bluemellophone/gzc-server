@@ -116,7 +116,6 @@ function loadGPSMap(track, markers, center)
     {
         marker = track[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
-        console.log(marker);
         if(last !== undefined)
         {
             if(insidePoly(mugu_polygon, [marker[1], marker[0]]))

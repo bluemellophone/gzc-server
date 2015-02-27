@@ -13,7 +13,6 @@ import numpy as np
 from os import mkdir
 from os.path import join, exists
 from datetime import datetime, date
-import time
 import re
 
 
@@ -197,7 +196,6 @@ def ensure_structure(data, kind, car_number, car_color, person=None):
 def convert_gpx_to_json(gpx_str, GMT_OFFSET=0):
     json_list = []
     root = ET.fromstring(gpx_str)
-
     namespace = '{http://www.topografix.com/GPX/1/1}'
     # Load all waypoint elements
     element = './/%strkpt' % (namespace, )
@@ -205,9 +203,12 @@ def convert_gpx_to_json(gpx_str, GMT_OFFSET=0):
     for trkpt in trkpt_list:
         # Load time out of trkpt
         element = './/%stime' % (namespace, )
-        dt = datetime.strptime(trkpt.find(element).text, '%Y-%m-%dT%H:%M:%S.%fZ')
+        time_str = trkpt.find(element).text
+        time_str = re.sub(r'\.[0-9][0-9][0-9][a-zA-Z]+', '', time_str)
+        dt = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         # Gather values
-        posix = int(time.mktime(dt.timetuple())) + (60 * 60 * GMT_OFFSET)
+        posix = int(dt.strftime("%s"))
+        posix += (60 * 60 * GMT_OFFSET)
         lat   = float(trkpt.get('lat'))
         lon   = float(trkpt.get('lon'))
         json_list.append({
