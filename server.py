@@ -143,17 +143,15 @@ def status():
             if base_car not in cars:
                 cars[base_car] = {}
             cars[base_car]['persons'] = {}
-            # Inherit GPS for person if car has GPS flags
-            if 'gps' in cars[base_car]:
-                flags_gps = dict(cars[base_car]['gps'])
-            else:
-                flags_gps = {}
             # Construct dict for person
             for direct_person in direct_car.directory_list:
                 base_person = direct_person.base()
                 person_path = join(images_path, base_car, base_person)
-                # Establish flags
-                flags = flags_gps
+                # Establish flags, inherit GPS for person if car has GPS flags
+                if 'gps' in cars[base_car]:
+                    flags = dict(cars[base_car]['gps'])
+                else:
+                    flags = {}
                 flags['submitted_images'] = True
                 flags['submitted_first'] = exists(join(person_path, 'first.jpg'))
                 flags['submitted_last']  = exists(join(person_path, 'last.jpg'))
@@ -370,7 +368,7 @@ def images():
     if time_minute not in TIME_MINUTE:
         return sf.response(105, '[images] Time (minute) invalid')
 
-    return sf.response(999, '[images] TEST')
+    # return sf.response(999, '[images] TEST')
 
     # Get image archive
     image_archive = request.files.get('image_archive', None)
@@ -449,7 +447,7 @@ def gps():
     if time_minute not in TIME_MINUTE:
         return sf.response(205, '[gps] Time (minute) invalid')
 
-    return sf.response(999, '[gps] TEST')
+    # return sf.response(999, '[gps] TEST')
 
     # Get GPS data from GPX file
     gps_data   = request.files.get('gps_data', None)

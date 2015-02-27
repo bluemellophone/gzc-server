@@ -9,14 +9,13 @@
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <title>IBEIS Event Administration</title>
     
-  	<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='include/bootstrap-3.2.0-dist/css/bootstrap.min.css') }}">
   	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>    
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>    
-    <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>    
+    <script src="{{ url_for('static', filename='javascript/jquery-ui.min.js') }}"></script>    
+    <script src="{{ url_for('static', filename='include/bootstrap-3.2.0-dist/js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='javascript/script.js') }}"></script>
   
     {% block content_custom_css %}{% endblock %}
