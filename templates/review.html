@@ -94,7 +94,7 @@
                         }
 
                         $("#candidate-image-original-" + i + " img").attr('src', $("#analysis-image-original-" + candidate + " img").attr('src') );
-                        $("#candidate-image-match-" + i + " img").attr('src', $("#analysis-image-match-" + candidate + " img").attr('src') );
+                        $("#candidate-image-match-" + i + " img").attr('src', $("#analysis-image-correspondences-" + candidate + " img").attr('src') );
                     }
                     else
                     {
@@ -197,7 +197,7 @@
                         <div role="tabpanel" class="tab-pane" id="person-{{ letter }}">
                     {% endif %}
                         <div class="analysis-container">
-                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter] %}
+                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter][:5] %}
                                 <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
                                     <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ letter }}-{{ i }}">
                                         <img src="{{ correspondences }}" />
@@ -275,38 +275,57 @@
                                     <div style="height: 100%; width: 100%; overflow: hidden;"> 
                                         <object id="gps-map-canvas" type="text/html" data="{{ url_for('map') }}?offset=-110&car_str={{ car_str }}" style="width: 100%; overflow: hidden;"></object>
                                     </div>
+                                    <div id="map-legend">
+                                        <div class="candidate-black"></div> 1<sup>st</sup> Image Locations
+                                        <br/>
+                                        <div class="candidate-red"></div> 2<sup>nd</sup> Image Locations
+                                        <br/>
+                                        <div class="candidate-green"></div> 3<sup>rd</sup> Image Locations
+                                        <br/>
+                                    </div>
                                 </div>
 
                                 <div class="row candidate" style="height:2%; margin-top:1%;">
-                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #777 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
                                         Your Image
                                     </div>
-                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-information" id="candidate-information-{{ i }}">
-                                    </div>
-                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #777 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                    <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
                                         Matched Image
                                     </div>
                                 </div>
 
-                                {% for i in range(3) %}
-                                    <div class="row candidate" style="height:19%; margin-bottom:1%">
+                                {% for (i, color) in [(0, 'black'), (1, 'red'), (2, 'green')] %}
+                                    <div class="row candidate" id="candidate-match-{{ i }}" style="height:19%; margin-bottom:1%">
                                         <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                            <p>IMAGE NAME</p>
+                                            <div class="candidate-{{ color }}">
+                                                <img src="" />
+                                            </div>
+                                            <p>IMAGE TIME</p>
+                                        </div>
+                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                            <p>MATCH NAME</p>
                                             <img src="" />
-                                        </div>
-                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-information" id="candidate-information-{{ i }}">
-                                            <div class="candidate-information-top">
-                                            </div>
-                                            <div style="position: absolute; display: table-cell; text-align: center; width: 100%; font-size: 18px;">
-                                                <span class="glyphicon glyphicon-arrow-up" aria-hidden="true" style="top: -10px;"></span>
-                                                <span class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="top: -10px;"></span>
-                                            </div>
-                                            <div class="candidate-information-bottom">
-                                            </div>
-                                        </div>
-                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-match" id="candidate-image-match-{{ i }}">
-                                            <img src=""/>
+                                            <p>FRIST SEEN TIME, FIRST SEEN LOCATION</p>
                                         </div>
                                     </div>
+
+                                    <!-- <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%">
+                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                            <p>IMAGE NAME</p>
+                                            <div class="candidate-{{ color }}">
+                                                <img src="" />
+                                            </div>
+                                            <p>IMAGE TIME</p>
+                                        </div>
+                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                            <h2 style="margin-top: 10px; color: #428BCA !important;">Congratulations!</h2>
+                                            <p>You found a new animal!  This animal has been seen first <b>by you</b>.</p>
+                                            <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: FIRST SEEN TIME </h4>
+                                            <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: LAT, LON</h4>
+                                            <i><h3 style="margin-top: 0px; color: #999;">Asante sana and come ujibambe!</h3></i>  
+                                        </div>
+                                    </div> -->
                                 {% endfor %}
 
                                 <div class="row" style="height:1%; text-align: center; color: #aaa !important; font-style: italic;">

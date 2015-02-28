@@ -122,6 +122,7 @@ html,body {
 .candidate 
 {
   display: table;
+  border-bottom: 1px #ddd solid;
 }
 
 .candidate-image-original, .candidate-image-match
@@ -134,15 +135,51 @@ html,body {
 
 .candidate-image-original img, .candidate-image-match img
 {
-  max-width: 100%;
+  width: 100%;
   height: auto;
-  max-height: 175px;
+  max-height: 135px;
   margin: 5px;
   /*  
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
   box-shadow: 1px 1px 8px gray;
   */
+}
+
+.candidate-image-original .candidate-image-original-container
+{
+  width: 100%;
+  height: auto;
+  max-height: 145px;
+  margin: 5px;
+}
+
+.candidate-image-original .candidate-black, .candidate-image-original .candidate-red, .candidate-image-original .candidate-green
+{
+  padding-right: 10px;
+}
+
+.candidate-black
+{
+  /*background-color: #000000;*/
+  background-color: #333333;
+}
+
+.candidate-red
+{
+  /*background-color: #bb0000;*/
+  background-color: #D9534F;
+}
+
+.candidate-green
+{
+  /*background-color: #006600;*/
+  background-color: #5CB85C;
+}
+
+.candidate-image-original p, .candidate-image-match p
+{
+  margin: 0px;
 }
 
 .candidate-information
@@ -170,12 +207,12 @@ html,body {
 
 .candidate-information-top, .candidate-image-match
 {
-  background-color: #DDD !important;
+  /*background-color: #DDD !important;*/
 }
 
 .candidate-information-bottom, .candidate-image-original
 {
-  background-color: #CCC !important;
+  /*background-color: #CCC !important;*/
 }
 /* END VERSION 2 */
 
@@ -199,6 +236,26 @@ html,body {
   height: 100%; 
   margin: 0; 
   padding: 0;
+}
+
+#map-legend
+{
+  padding: 5px;
+  background-color: #eee;
+  border: 1px #999 solid;
+  position: absolute;
+  z-index: 9999;
+  top: 324px;
+  left: 92px;
+}
+
+#map-legend div
+{
+  height: 10px;
+  width: 10px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-right: 6px;
 }
 
 .checkered  {
