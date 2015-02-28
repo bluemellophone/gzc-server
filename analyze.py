@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import cv2
 import simplejson as json
-import webbrowser
+import webbrowser  # NOQA
 
 # IBEIS
 from ibeis import constants as const
@@ -328,7 +328,7 @@ def check_if_need_review(person, car, params):
            existence_check:
             review_url = 'http://%s:%s/review/%s/%s' % (server_ip_address, server_port, car, person)
             print('[analyze] *** requesting review at: %s ***' % (review_url))
-            webbrowser.open(review_url)
+            # webbrowser.open(review_url)
 
             with open(review_indicator_file, 'w') as ofile:
                 ofile.write('this file tells the observer that this directory has already been sent for review and should not be sent again')
