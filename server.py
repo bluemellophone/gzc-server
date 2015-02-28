@@ -44,7 +44,8 @@ DEFAULT_PORT = 5000
 DEFAULT_DATA_DIR = 'data'
 # DEFAULT_PRINTER_NAME = 'MRC-Lab-Printer'
 # DEFAULT_PRINTER_NAME = '_128_213_17_40'
-DEFAULT_PRINTER_NAME = 'printer'
+# DEFAULT_PRINTER_NAME = 'printer'
+DEFAULT_PRINTER_NAME = 'HP_Deskjet_2540_series_2'
 # GMT_OFFSET = -5  # Troy
 GMT_OFFSET = 3  # Nairobi
 
@@ -606,8 +607,8 @@ def render_html(car, person):
         return sf.response(300, '[render_html] Could not write HTML file: %r' % (e, ))
     # Render content.html with wkhtmltopdf to content.pdf
     #TODO: Maybe redirect STDERR to something useful so we can put it in the JSON response
-    execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
-    # execute = 'wkhtmltopdf -s A4 -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
+    # execute = 'wkhtmltopdf -s Letter -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
+    execute = 'wkhtmltopdf -s A4 -B 0 -L 0 -R 0 -T 0 --javascript-delay 3000 --zoom 1.1 %s %s' % (input_path, output_path)
     print(execute)
     sp.Popen(execute, shell=True)
     # Return nice response

@@ -150,6 +150,7 @@ html,body {
   width: 100%;
   height: auto;
   max-height: 135px;
+  max-width: 100%;
   /*  
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
