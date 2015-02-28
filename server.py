@@ -266,6 +266,7 @@ def review(car, person):
     car_str, car_number, car_color, person = sf.process_person(car, person)
     # Build analysis list
     valid = False
+    data = None
     analysis_dict = {}
     analysis_dict[person] = None
     gps_path = 'data/gps/%s/track.json' % (car_str, )
@@ -317,6 +318,10 @@ def review(car, person):
                 print('ERROR: %s has no analysis' % (analysis_path, ))
         analysis_dict[letter] = analysis_list
     # Set valid flag
+    if exists(gps_path):
+        print("FOUND GPS JSON")
+        with open(gps_path, 'r') as json_file:
+            data = json_file.read()
     if exists(gps_path) and len(analysis_dict[person]) >= 1:
         valid = True
     # Set valid if override
@@ -324,7 +329,7 @@ def review(car, person):
         valid = True
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person,
-                       analysis_dict=analysis_dict, valid=valid)
+                       analysis_dict=analysis_dict, data=data, valid=valid)
 
 
 @app.route('/print/<car>/<person>')
@@ -520,7 +525,6 @@ def map_online():
             print("FOUND GPS JSON")
             with open(gps_path, 'r') as json_file:
                 json_str = json_file.read()
-            print(json_str)
     else:
         gpx_data  = request.files.get('gps_data_gpx', None)
         json_data = request.files.get('gps_data_json', None)
@@ -535,9 +539,12 @@ def map_online():
 
 @app.route('/map/submit', methods=['GET', 'POST'])
 def map():
+    print('GET:  ', request.args)
     gpx_str  = request.form.get('gps_data_str', None)
     offset   = request.args.get('offset', None)
     car_str  = request.args.get('car_str', None)
+    original_locations = request.args.get('original_locations', '[undefined, undefined, undefined]')
+    match_locations    = request.args.get('match_locations', '[undefined, undefined, undefined]')
     json_str = None
     if gpx_str is not None and len(gpx_str) > 0:
         json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
@@ -556,7 +563,9 @@ def map():
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
-    return sf.template('map', data=json_str, offset=offset)
+    return sf.template('map', data=json_str, offset=offset,
+                       original_locations=original_locations,
+                       match_locations=match_locations)
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])
@@ -590,7 +599,7 @@ def render_html(car, person):
             <html>'
             ''' % (head_content, printable, html_content)
             content = content.replace('/static/', request.url_root + 'static/')
-            content = content.replace('<script src="https://maps.gstatic.com/maps-api-v3/api/js/19/10/main.js"></script>', '')  # Fix for JavaScript Google Maps
+            content = content.replace('data="/', 'data="' + request.url_root)
             content = content.encode('utf-8')
             html_file.write(content)
     except Exception as e:

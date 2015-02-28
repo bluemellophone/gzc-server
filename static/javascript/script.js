@@ -24,9 +24,14 @@ function undef(value, def)
     return ( typeof value !== 'undefined' ? value : def );
 }
 
-function removeFromArray(value, array)
+function removeValueFromArray(value, array)
 {
     var index = array.indexOf(value);
+    removeIndexFromArray(index, array)
+    return index
+}
+function removeIndexFromArray(index, array)
+{
     if (index > -1) {
         array.splice(index, 1);
     }

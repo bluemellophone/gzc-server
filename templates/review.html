@@ -16,11 +16,34 @@
     {% else %}
         <script type="text/javascript">
             var selected = new Array();
+            var isnew    = new Array();
             var track = {};
             var markers = {};
             var empty = '{{ url_for('static', filename='images/empty.jpg') }}';
+            var original_locations = new Array();
+            var match_locations = new Array();
 
-            $( window ).ready( function() {
+            $( window ).load( function() {
+                {% if data %}
+                    {% autoescape false %}
+                        var data = $.parseJSON('{{ data }}');
+                    {% endautoescape %}
+                    var last = undefined;
+                    $.each( data.track, function( key, marker ) {
+                        if(last === undefined)
+                        {
+                            last = marker.time;
+                            console.log("TRACK FIRST: " + last);
+                        }
+                        else
+                        {
+                            last = marker.time;   
+                        }
+                        track[last] = [marker.lat, marker.lon];
+                    });
+                    console.log("TRACK LAST : " + last);
+                {% endif %}
+
                 $(".analysis-image-hover-container").mouseenter(function() {
                     analysis = $(this).attr("analysis");       
                     $(this).animate({ backgroundColor: "#CCC", }, 500);
@@ -33,10 +56,14 @@
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
                 });
 
-                toggleAnalysis('{{ person }}-0', false);
-                toggleAnalysis('{{ person }}-1', false);
-                toggleAnalysis('{{ person }}-2', false);
+                loadMap();
+                updateCandidates();
             });
+
+            function loadMap()
+            {
+                $("#gps-map-canvas").attr('src', '{{ url_for('map') }}?offset=-110&car_str={{ car_str }}&original_locations=' + JSON.stringify(original_locations) + "&match_locations=" + JSON.stringify(match_locations));
+            }
 
             function findClosestTime(metadata_time)
             {
@@ -50,78 +77,123 @@
                 }
                 return index;
             }
+            function zeroPad(num, places) {
+              var zero = places - num.toString().length + 1;
+              return Array(+(zero > 0 && zero)).join("0") + num;
+            }
+
 
             function updateCandidates()
             {
-                var version = 2; // UPDATE CSS VALUES
                 var template = '' + 
                     '<h4>Image: {0}</h4>' + 
                     '<p>Time: {1}</p>' + 
                 '';
                 markers = {};
+                original_locations = new Array();
+                match_locations = new Array();
                 for( var i = 0; i < 3; i++ )
                 {
                     if(i < selected.length)
                     {
                         var candidate = selected[i];
+                        var candidate_is_new = isnew[i];
                         var analysis = $("#analysis-" + candidate);
-                        var metadata_time = analysis.attr("metadata-original-image-unixtime");
-                        metadata_time = Number.parseFloat(metadata_time);
-                        console.log(candidate + " " + metadata_time);
-                        var close = findClosestTime(metadata_time);
-                        markers[i] = track[close];
 
-                        if(version == 1)
-                        {
-                            content = template.format(
-                                analysis.attr("metadata-original-image-gname"), 
-                                analysis.attr("metadata-original-image-unixtime")
-                            );
-                            $("#candidate-information-" + i).html(content); 
-                        }
-                        else if(version == 2)
-                        {
-                            content_top = template.format(
-                                analysis.attr("metadata-match-image-gname"), 
-                                analysis.attr("metadata-match-image-unixtime")
-                            );
-                            content_bottom = template.format(
-                                analysis.attr("metadata-original-image-gname"), 
-                                analysis.attr("metadata-original-image-unixtime")
-                            );
-                            $("#candidate-information-" + i + " .candidate-information-top").html(content_top); 
-                            $("#candidate-information-" + i + " .candidate-information-bottom").html(content_bottom);  
-                        }
+                        original_name = analysis.attr('metadata-original-image-gname');
+                        original_unixtime = Number.parseFloat(analysis.attr('metadata-original-image-unixtime'));
+                        original_date = new Date(original_unixtime * 1000);
+                        original_date_str = original_date.getUTCDate() + "/" + (original_date.getUTCMonth() + 1) + "/" + original_date.getUTCFullYear() + " " + zeroPad(original_date.getUTCHours(), 2) + ":" + zeroPad(original_date.getUTCMinutes(), 2);
+
+                        match_name = analysis.attr('metadata-match-annot-name');
+                        match_unixtime = Number.parseFloat(analysis.attr('metadata-match-image-unixtime'));
+                        // match_unixtime += 60 * 60 * 3;  // Offset for Nairobi time
+                        match_date = new Date(match_unixtime * 1000);
+                        match_date_str = match_date.getUTCDate() + "/" + (match_date.getUTCMonth() + 1) + "/" + match_date.getUTCFullYear() + " " + zeroPad(match_date.getUTCHours(), 2) + ":" + zeroPad(match_date.getUTCMinutes(), 2);
+
+                        track_index = findClosestTime(original_unixtime);
+                        console.log(original_unixtime, track_index);
+                        original_image_lat = Number.parseFloat(track[track_index][0]).toFixed(6);
+                        original_image_lon = Number.parseFloat(track[track_index][1]).toFixed(6);
+
+                        match_image_lat = Number.parseFloat(analysis.attr('metadata-match-image-lat')).toFixed(6);
+                        match_image_lon = Number.parseFloat(analysis.attr('metadata-match-image-lon')).toFixed(6);
 
                         $("#candidate-image-original-" + i + " img").attr('src', $("#analysis-image-original-" + candidate + " img").attr('src') );
-                        $("#candidate-image-match-" + i + " img").attr('src', $("#analysis-image-correspondences-" + candidate + " img").attr('src') );
+
+                        original_locations.push([original_image_lat, original_image_lon]);
+
+                        if(candidate_is_new)
+                        {
+                            $("#candidate-new-" + i).css('display', 'initial');
+                            $("#candidate-match-" + i).css('display', 'none');
+
+                            $('#candidate-new-'   + i + '-original-name').html(original_name);
+                            $('#candidate-new-'   + i + '-original-time').html(original_date_str);
+                            $('#candidate-new-'   + i + '-match-time').html(original_date_str);
+                            $('#candidate-new-'   + i + '-match-lat-lon').html(original_image_lat + ', ' + original_image_lon);
+
+                            match_locations.push(undefined);
+                        }
+                        else
+                        {
+                            $("#candidate-image-match-" + i + " img").attr('src', $("#analysis-image-correspondences-" + candidate + " img").attr('src') );
+
+                            $("#candidate-new-" + i).css('display', 'none');
+                            $("#candidate-match-" + i).css('display', 'initial');
+
+                            $('#candidate-match-' + i + '-original-name').html(original_name);
+                            $('#candidate-match-' + i + '-original-time').html(original_date_str);
+                            $('#candidate-match-' + i + '-match-name').html(match_name);
+                            $('#candidate-match-' + i + '-match-time-lat-lon').html('First seen ' + match_date_str + ' at ' + match_image_lat + ', ' + match_image_lon);
+
+                            match_locations.push([match_image_lat, match_image_lon]);
+                        }
+                        // var metadata_time = analysis.attr("metadata-original-image-unixtime");
+                        // metadata_time = Number.parseFloat(metadata_time);
+                        // console.log(candidate + " " + metadata_time);
+                        // var close = findClosestTime(metadata_time);
+                        // markers[i] = track[close];
+
+                        // content = template.format(
+                        //     analysis.attr("metadata-original-image-gname"), 
+                        //     analysis.attr("metadata-original-image-unixtime")
+                        // );
+                        // $("#candidate-information-" + i).html(content); 
                     }
                     else
                     {
-                        if(version == 1)
-                        {
-                            $("#candidate-information-" + i).html('<h4>Select an Analysis</h4>');   
-                        }
-                        else if(version == 2)
-                        {
-                            $("#candidate-information-" + i + " .candidate-information-top").html('<h4>Select an Analysis</h4>');   
-                            $("#candidate-information-" + i + " .candidate-information-bottom").html('<h4>Select an Analysis</h4>');   
-                        }
-                        $("#candidate-image-original-" + i + " img").attr('src', empty);
+                        original_locations.push(undefined);
+                        match_locations.push(undefined);
+
+                        $("#candidate-new-" + i).css('display', 'none');
+                        $("#candidate-match-" + i).css('display', 'initial');
+
+                        $('#candidate-new-'   + i + '-original-name').html('');
+                        $('#candidate-new-'   + i + '-original-time').html('');
+                        $('#candidate-new-'   + i + '-match-time').html('');
+                        $('#candidate-new-'   + i + '-match-lat-lon').html('');
+                        $('#candidate-match-' + i + '-original-name').html('');
+                        $('#candidate-match-' + i + '-original-time').html('');
+                        $('#candidate-match-' + i + '-match-name').html('');
+                        $('#candidate-match-' + i + '-match-time-lat-lon').html('');
+
+                        $("#candidate-image-original-" + i + " div img").attr('src', empty);
                         $("#candidate-image-match-" + i + " img").attr('src', empty);
                     }
                 }
-                // renderMap();
+                loadMap();
             }
 
             function toggleAnalysis(analysis, is_new)
             {
-                console.log("NEW: " + is_new);
                 if(selected.indexOf(analysis) > -1)
                 {
-                    removeFromArray(analysis, selected)
+                    var removedIndex = removeValueFromArray(analysis, selected);
+                    removeIndexFromArray(removedIndex, isnew)
                     $("#analysis-" + analysis).removeClass('analysis-selected');
-                    $("#analysis-" + analysis + " div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
+                    $("#analysis-image-hover-container-" + analysis).removeClass('analysis-image-hover-container-new');
+                    $("#analysis-image-hover-container-" + analysis).removeClass('analysis-image-hover-container-match');
                     updateCandidates();
                 }
                 else
@@ -129,17 +201,27 @@
                     while(selected.length >= 3)
                     {
                         var popped = selected[0];
-                        removeFromArray(popped, selected);
+                        removedIndex= removeValueFromArray(popped, selected);
+                        removeIndexFromArray(removedIndex, isnew)
                         $("#analysis-" + popped).removeClass('analysis-selected');
-                        $("#analysis-" + popped + " div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
+                        $("#analysis-image-hover-container-" + popped).removeClass('analysis-image-hover-container-new');
+                        $("#analysis-image-hover-container-" + popped).removeClass('analysis-image-hover-container-match');
                         updateCandidates();
                     }
 
                     if(selected.length < 3)
                     {
                         selected.push(analysis);
+                        isnew.push(is_new);
                         $("#analysis-" + analysis).addClass('analysis-selected');
-                        $("#analysis-" + analysis + " div span.glyphicon.glyphicon-heart").removeClass('glyphicon-heart-empty');
+                        if(is_new)
+                        {
+                            $("#analysis-image-hover-container-" + analysis).addClass('analysis-image-hover-container-new');
+                        }
+                        else
+                        {
+                            $("#analysis-image-hover-container-" + analysis).addClass('analysis-image-hover-container-match');   
+                        }
                         updateCandidates();
                     }
                     else
@@ -156,15 +238,23 @@
                 {
                     $("#send-button").attr('disabled','disabled'); 
                 }
-                console.log(selected);
+                // console.log(selected);
+                // console.log(isnew);
             }
 
             function clearSelected()
             {
                 selected = new Array();
+                isnew = new Array();
                 updateCandidates();
                 $(".analysis").removeClass('analysis-selected');
-                $(".analysis div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
+            }
+
+            function prePrint(car_str, person)
+            {
+                content = $('#gps-map-canvas').contents().find('.content-include').html();
+                $('#gps-map-canvas-container').html(content);
+                submitPDF(car_str, person);
             }
         </script>
 
@@ -209,9 +299,9 @@
                                     <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-match" id="analysis-image-match-{{ letter }}-{{ i }}">
                                         <img src="{{ match }}" />
                                     </div>
-                                    <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover-container" analysis="{{ letter }}-{{ i }}">
+                                    <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover-container" id="analysis-image-hover-container-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}">
                                         <div class="analysis-image-hover" onclick="toggleAnalysis('{{ letter }}-{{ i }}', false);"  id="analysis-image-hover-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" style="width: 100%; height: 50%;">
-                                            <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
+                                            <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>
                                         </div>
                                         <br/>
                                         <div class="analysis-image-new" onclick="toggleAnalysis('{{ letter }}-{{ i }}', true);"  style="width: 100%; height: 50%; margin-top: 10px;">
@@ -225,7 +315,7 @@
                 {% endfor %}
                 </div>
                 <div class="send-container">
-                    <a class="btn btn-xl btn-primary" id="send-button" onclick="submitPDF('{{ car_str }}', '{{ person }}')" disabled="disabled">PRINT</a>
+                    <a class="btn btn-xl btn-primary" id="send-button" onclick="prePrint('{{ car_str }}', '{{ person }}')" disabled="disabled">PRINT</a>
                 </div>
             </div>
 
@@ -240,21 +330,9 @@
                                 
                                 <div class="row" style="height:10%;">
                                     <div class="col-xs-8 col-sm-8 col-md-8 notice-cell">
-                                        <img src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="width: 110px; margin-top: -70px; margin-left: -10px; margin-right: 10px;"/>
-<!--                                         
-                                        <img src="{{ url_for('static', filename='images/logo_kwf.png') }}" style="width: 110px; margin-top: -70px; margin-left: -10px; margin-right: 10px;"/>
-                                        
-                                        <img src="{{ url_for('static', filename='images/logo_kws.png') }}" style="width: 110px; margin-top: -70px; margin-left: -10px; margin-right: 10px;"/> 
--->                                        
-  
-                                        <div style="display:inline-block; font-size:20px; margin-top:-10px;">
-                                            <h3 style="line-height: 35px;">
-                                            The Great Zebra &amp; <br/>
-                                            Giraffe Count
-                                            </h3>
-                                        </div> 
-
-
+                                        <img src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="height: 100px;margin-top: -15px;margin-left: -10px;margin-right: 10px;"/>
+                                         
+                                        <img src="{{ url_for('static', filename='images/logo_kwf.png') }}" style="height: 100px;margin-top: -15px;margin-left: -10px;margin-right: 10px;"/>
                                     </div>
 
                                     <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
@@ -272,60 +350,60 @@
                                 
                                 <div class="row" style="height:27%; margin: 0px;">
                                     <!-- <div id="gps-map-canvas"></div> -->
-                                    <div style="height: 100%; width: 100%; overflow: hidden;"> 
-                                        <object id="gps-map-canvas" type="text/html" data="{{ url_for('map') }}?offset=-110&car_str={{ car_str }}" style="width: 100%; overflow: hidden;"></object>
+                                    <div id="gps-map-canvas-container" style="height: 100%; width: 100%; overflow: hidden; position: relative;"> 
+                                        <iframe id="gps-map-canvas" type="text/html" src="" style="width: 100%; overflow: hidden; border-style: none;"></iframe>
                                     </div>
                                     <div id="map-legend">
-                                        <div class="candidate-black"></div> 1<sup>st</sup> Image Locations
+                                        <div class="candidate-black"></div> 1<sup style="margin-right: 3px;">st</sup> Animal Locations
                                         <br/>
-                                        <div class="candidate-red"></div> 2<sup>nd</sup> Image Locations
+                                        <div class="candidate-red"></div> 2<sup>nd</sup> Animal Locations
                                         <br/>
-                                        <div class="candidate-green"></div> 3<sup>rd</sup> Image Locations
+                                        <div class="candidate-green"></div> 3<sup style="margin-right: 2px;">rd</sup> Animal Locations
                                         <br/>
                                     </div>
                                 </div>
 
                                 <div class="row candidate" style="height:2%; margin-top:1%;">
                                     <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
-                                        Your Image
+                                        Your Image of Animal
                                     </div>
                                     <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
-                                        Matched Image
+                                        Matched Image of Animal
                                     </div>
                                 </div>
 
                                 {% for (i, color) in [(0, 'black'), (1, 'red'), (2, 'green')] %}
                                     <div class="row candidate" id="candidate-match-{{ i }}" style="height:19%; margin-bottom:1%">
                                         <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
-                                            <p>IMAGE NAME</p>
+                                            <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-original-name"></span></h4>
                                             <div class="candidate-{{ color }}">
                                                 <img src="" />
                                             </div>
-                                            <p>IMAGE TIME</p>
+                                            <p><span id="candidate-match-{{ i }}-original-time"></span></p>
                                         </div>
                                         <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
-                                            <p>MATCH NAME</p>
+                                            <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-match-name"></span></h4>
                                             <img src="" />
-                                            <p>FRIST SEEN TIME, FIRST SEEN LOCATION</p>
+                                            <p><span id="candidate-match-{{ i }}-match-time-lat-lon"></span></p>
                                         </div>
                                     </div>
 
-                                    <!-- <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%">
+                                    <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%; display:none;">
                                         <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
-                                            <p>IMAGE NAME</p>
+                                            <h4 style="margin: 0px;"><span id="candidate-new-{{ i }}-original-name"></span></h4>
                                             <div class="candidate-{{ color }}">
                                                 <img src="" />
                                             </div>
-                                            <p>IMAGE TIME</p>
+                                            <p><span id="candidate-new-{{ i }}-original-time"></span></p>
                                         </div>
                                         <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
                                             <h2 style="margin-top: 10px; color: #428BCA !important;">Congratulations!</h2>
                                             <p>You found a new animal!  This animal has been seen first <b>by you</b>.</p>
-                                            <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: FIRST SEEN TIME </h4>
-                                            <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: LAT, LON</h4>
+                                            <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: <span id="candidate-new-{{ i }}-match-time"></span> </h4>
+                                            <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: <span id="candidate-new-{{ i }}-match-lat-lon"></span></h4>
                                             <i><h3 style="margin-top: 0px; color: #999;">Asante sana and come ujibambe!</h3></i>  
                                         </div>
-                                    </div> -->
+                                    </div>
                                 {% endfor %}
 
                                 <div class="row" style="height:1%; text-align: center; color: #aaa !important; font-style: italic;">

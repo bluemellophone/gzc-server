@@ -1,44 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
 
+    
     <style type="text/css">
         body
         {
             overflow-y: hidden;
             background-color: #ececec;
-        }
-
-        #gps-map-image
-        {
-            width: 100%;
-            position: absolute !important;
-            top: 0;
-            left: 0;
-        }
-
-        #gps-map-points
-        {
-            width: 100%;
-            height: 100%;
-        }
-
-        #gps-map-points .point
-        {
-            position: absolute !important;
-            height: 2px;
-            width: 2px;
-            border-radius: 2px;
-            top: -2px;
-            left: -2px;
-        }
-
-        #gps-map-points .point-boundary
-        {
-            position: absolute !important;
-            height: 10px;
-            width: 10px;
-            top: -10px;
-            left: -10px;
         }
 
         .content
@@ -52,123 +20,265 @@
         }
     </style>
 
-    <script type="text/javascript">
-        var bounds = {"Ca":{"k":-1.4522305295054223,"j":-1.2857665810048595},"va":{"j":36.71872268676759,"k":37.001277313232436}}
-
-        var b1 = bounds['Ca']['j']
-        var b2 = bounds['Ca']['k']
-        var b3 = bounds['va']['j']
-        var b4 = bounds['va']['k']
-        var boundsTL = [b1, b3]
-        var boundsBR = [b2, b4]
-
-        var track = {};
-        var markers = {};
-        {% if offset %}
-            var offset = {{ offset }};
-        {% else %}
-            var offset = undefined;
-        {% endif %}
-        var image_width = 0;
-        var image_height = 0;
-
-        $( window ).load( function() {
-            initValues();
-            centerMap();
-
-            {% if data %}
-                {% autoescape false %}
-                    var data = $.parseJSON('{{ data }}');
-                {% endautoescape %}
-                var last = undefined;
-                $.each( data.track, function( key, marker ) {
-                    if(last === undefined)
-                    {
-                        last = marker.time;
-                        console.log("TRACK FIRST: " + last);
-                    }
-                    else
-                    {
-                        last = marker.time;   
-                    }
-                    track[last] = [marker.lat, marker.lon];
-                });
-                console.log("TRACK LAST: " + last);
-                drawTrack(track);
-            {% endif %}
-        });
-
-        function initValues()
-        {
-            viewport_height = $( window.top ).height();
-            var img = document.getElementById('gps-map-image');
-            image_width = img.clientWidth;
-            image_height = img.clientHeight;
-            console.log("Image: " + viewport_height + " " + image_height);
-            // Assign offset, if not given by GET
-            // temp = -1 * (image_height - viewport_height) / 2;
-            temp = 0;   
-            offset = undef(offset, temp);
-        }
-
-        function centerMap()
-        {
-            $("#gps-map-image").css("top", offset + 'px');
-        }
-
-        function mapPoint(lat_orig, lon_orig)
-        {
-            var mapWidth = Math.abs(boundsBR[1] - boundsTL[1])
-            var mapHeight = Math.abs(boundsBR[0] - boundsTL[0])
-            // console.log(lat + " " + lon);
-            // offset to map origin
-            lat = lat_orig - boundsTL[0];
-            lon = lon_orig - boundsTL[1];
-            // console.log(lat + " " + lon);
-            // offset to map origin
-            lat /= mapHeight;
-            lon /= mapWidth;
-            // console.log(lat + " " + lon);
-            // abs percentage
-            lat = Math.abs(lat);
-            lon = Math.abs(lon);
-            // console.log(lat + " " + lon);
-            // find pixel absolute offset
-            lat *= image_height;
-            lon *= image_width;
-            // console.log(lat + " " + lon);
-            // fix height due to offset
-            lat += offset;
-            return [lat, lon];
-        }
-
-        function drawTrack(track)
-        {
-            $('#gps-map-points').html('');
-            var point;
-            for(var index in track)
+    <div class="content-include">
+        <style type="text/css">
+            #gps-map-image
             {
-                point = track[index];
-                // point
-                lat_orig = point[0];
-                lon_orig = point[1];
-                mapped_point = mapPoint(lat_orig, lon_orig)
-                lat = mapped_point[0];
-                lon = mapped_point[1];
-
-                if(insidePoly(undefined, [lon_orig, lat_orig]))
-                    color = "#428BCA";
-                else
-                    color = "#FF0000";
-
-                $('#gps-map-points').append('<div class="point" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ';"></div>');
+                width: 100%;
+                position: absolute !important;
+                top: 0;
+                left: 0;
             }
-        }
-    </script>
 
-    <img id="gps-map-image" src="{{ url_for('static', filename='images/map_nairobi.png') }}"/>
-    <div id="gps-map-points">
-        <div class="point"></div>
+            #gps-map-points
+            {
+                width: 100%;
+                height: 100%;
+            }
+
+            #gps-map-points .point
+            {
+                position: absolute !important;
+                height: 2px;
+                width: 2px;
+                border-radius: 2px;
+                top: -2px;
+                left: -2px;
+            }
+
+            #gps-map-points .big-point
+            {
+                position: absolute !important;
+                height: 10px;
+                width: 10px;
+                border-radius: 10px;
+                top: -10px;
+                left: -10px;
+            }
+
+            #gps-map-points .point-boundary
+            {
+                position: absolute !important;
+                height: 10px;
+                width: 10px;
+                top: -10px;
+                left: -10px;
+            }
+        </style>
+
+        <script type="text/javascript">
+            var bounds = {"Ca":{"k":-1.4522305295054223,"j":-1.2857665810048595},"va":{"j":36.71872268676759,"k":37.001277313232436}}
+
+            var b1 = bounds['Ca']['j']
+            var b2 = bounds['Ca']['k']
+            var b3 = bounds['va']['j']
+            var b4 = bounds['va']['k']
+            var boundsTL = [b1, b3]
+            var boundsBR = [b2, b4]
+
+            var track = {};
+            var markers = {};
+
+            {% autoescape false %}
+                {% if original_locations %}
+                    var original_locations = $.parseJSON('{{ original_locations }}');
+                {% else %}
+                    var original_locations = new Array();
+                {% endif %}    
+                
+                {% if match_locations %}
+                    var match_locations = $.parseJSON('{{ match_locations }}');
+                {% else %}
+                    var match_locations = new Array();
+                {% endif %}
+            {% endautoescape %}
+
+            {% if offset %}
+                var offset = {{ offset }};
+            {% else %}
+                var offset = undefined;
+            {% endif %}
+            var image_width = 0;
+            var image_height = 0;
+
+            $( window ).load( function() {
+                initValues();
+                centerMap();
+
+                {% if data %}
+                    {% autoescape false %}
+                        var data = $.parseJSON('{{ data }}');
+                    {% endautoescape %}
+                    var last = undefined;
+                    $.each( data.track, function( key, marker ) {
+                        if(last === undefined)
+                        {
+                            last = marker.time;
+                            // console.log("TRACK FIRST: " + last);
+                        }
+                        else
+                        {
+                            last = marker.time;   
+                        }
+                        track[last] = [marker.lat, marker.lon];
+                    });
+                    // console.log("TRACK LAST: " + last);
+                    drawTrack(track);
+                {% endif %}
+            });
+
+            function initValues()
+            {
+                viewport_height = $( window.top ).height();
+                var img = document.getElementById('gps-map-image');
+                image_width = img.clientWidth;
+                image_height = img.clientHeight;
+                // console.log("Image: " + viewport_height + " " + image_height);
+                // Assign offset, if not given by GET
+                // temp = -1 * (image_height - viewport_height) / 2;
+                temp = 0;   
+                offset = undef(offset, temp);
+            }
+
+            function centerMap()
+            {
+                $("#gps-map-image").css("top", offset + 'px');
+            }
+
+            function mapPoint(lat_orig, lon_orig)
+            {
+                var mapWidth = Math.abs(boundsBR[1] - boundsTL[1])
+                var mapHeight = Math.abs(boundsBR[0] - boundsTL[0])
+                // console.log(lat + " " + lon);
+                // offset to map origin
+                lat = Number.parseFloat(lat_orig) - boundsTL[0];
+                lon = Number.parseFloat(lon_orig) - boundsTL[1];
+                // console.log(lat + " " + lon);
+                // offset to map origin
+                lat /= mapHeight;
+                lon /= mapWidth;
+                // console.log(lat + " " + lon);
+                // abs percentage
+                lat = Math.abs(lat);
+                lon = Math.abs(lon);
+                // console.log(lat + " " + lon);
+                // find pixel absolute offset
+                lat *= image_height;
+                lon *= image_width;
+                // console.log(lat + " " + lon);
+                // fix height due to offset
+                lat += offset;
+                return [lat, lon];
+            }
+
+            function drawTrack(track)
+            {
+                $('#gps-map-points').html('');
+                var point;
+                for(var index in track)
+                {
+                    point = track[index];
+                    // point
+                    lat_orig = point[0];
+                    lon_orig = point[1];
+                    mapped_point = mapPoint(lat_orig, lon_orig)
+                    lat = mapped_point[0];
+                    lon = mapped_point[1];
+
+                    if(insidePoly(undefined, [lon_orig, lat_orig]))
+                        color = "#428BCA";
+                    else
+                        color = "#FF0000";
+
+                    $('#gps-map-points').append('<div class="point" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
+                }
+
+                for(var index in original_locations)
+                {
+                    point = original_locations[index];
+                    console.log(point);
+                    if(point !== null)
+                    {
+                        // point
+                        lat_orig = point[0];
+                        lon_orig = point[1];
+                        mapped_point = mapPoint(lat_orig, lon_orig)
+                        lat = mapped_point[0] -= 5;
+                        lon = mapped_point[1] -= 5;
+
+                        if(insidePoly(undefined, [lon_orig, lat_orig]))
+                        {
+                            if(index == 0)
+                            {
+                                class_str = 'candidate-black';
+                            }
+                            else if(index == 1)
+                            {
+                                class_str = 'candidate-red';
+                            }
+                            else
+                            {
+                                class_str = 'candidate-green';
+                            }
+                            color = '';
+                        }
+                        else
+                        {
+                            class_str = '';
+                            color = "#FFFF00 !important";
+                        }
+
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
+                    }
+                }
+
+                for(var index in match_locations)
+                {
+                    point = match_locations[index];
+                    console.log(point);
+                    if(point !== null)
+                    {
+                        // point
+                        lat_orig = point[0];
+                        lon_orig = point[1];
+                        mapped_point = mapPoint(lat_orig, lon_orig)
+                        lat = mapped_point[0] -= 5;
+                        lon = mapped_point[1] -= 5;
+
+                        if(insidePoly(undefined, [lon_orig, lat_orig]))
+                        {
+                            if(index == 0)
+                            {
+                                class_str = 'candidate-black';
+                            }
+                            else if(index == 1)
+                            {
+                                class_str = 'candidate-red';
+                            }
+                            else
+                            {
+                                class_str = 'candidate-green';
+                            }
+                            color = '';
+                        }
+                        else
+                        {
+                            class_str = '';
+                            color = "#FFFF00 !important";
+                        }
+
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
+                    }
+                }
+            }
+        </script>
+
+        <img id="gps-map-image" src="{{ url_for('static', filename='images/map_nairobi.png') }}"/>
+        <div id="gps-map-points">
+            <div class="point"></div>
+        </div>
     </div>
+
+    
 
 {% endblock %}

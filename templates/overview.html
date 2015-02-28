@@ -26,11 +26,11 @@
             '    <td><b>{0}</b></td>' + 
             '    <td><b>{1}</b></td>' + 
             '    <td>{2} / {3}</td>' + 
-            '    <td>{4}</td>' + 
-            '    <td>{5}</td>' + 
+            '    <td><a class="btn btn-xs btn-primary" href="/review/{4}/{5}" target="_blank">Review</a>' + 
             '    <td>{6}</td>' + 
             '    <td>{7}</td>' + 
-            '    <td><a class="btn btn-xs btn-primary" href="/review/{8}/{9}" target="_blank">Review</a>'
+            '    <td>{8}</td>' + 
+            '    <td><a class="btn btn-xs btn-default" href="/print/{9}/{10}" target="_blank">{11}<a/></td>' + 
             '</tr>';
 
             $.getJSON(data_url)
@@ -45,12 +45,14 @@
                                 key_person,
                                 person.submitted_images,
                                 person.submitted_generated_json,
+                                key_car,
+                                key_person,
                                 person.analyzed,
                                 person.reviewed_posted,
                                 person.reviewed_rendered,
-                                person.reviewed_printed,
                                 key_car,
-                                key_person
+                                key_person,
+                                (person.reviewed_printed === undefined ? false : true)
                             );
                             var content = content.replace(/undefined/g, "");
                             var content = content.replace(/true/g, "Yes");
@@ -78,11 +80,11 @@
                     <th>Car</th>
                     <th>Person</th>
                     <th>Submitted<br/>(Images / GPS)</th>
+                    <th>Review</th>
                     <th>Analysed</th>
                     <th>Posted</th>
                     <th>Rendered</th>
                     <th>Printed</th>
-                    <th>Review</th>
                 </tr>
             </thead>
             <tbody id="content">

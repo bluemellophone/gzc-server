@@ -81,6 +81,18 @@ html,body {
   line-height: 0px;
 }
 
+.analysis-image-hover-container-new .analysis-image-new
+{
+  background-color: #3071A9;
+  color: #fff;
+}
+
+.analysis-image-hover-container-match .analysis-image-hover
+{
+  background-color: #3071A9;
+  color: #fff;
+}
+
 .analysis-image-hover, .analysis-image-new
 {
   padding: 15px 0px;
@@ -138,12 +150,16 @@ html,body {
   width: 100%;
   height: auto;
   max-height: 135px;
-  margin: 5px;
   /*  
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
   box-shadow: 1px 1px 8px gray;
   */
+}
+
+.candidate-image-original img
+{
+  margin: 5px;
 }
 
 .candidate-image-original .candidate-image-original-container
@@ -162,19 +178,19 @@ html,body {
 .candidate-black
 {
   /*background-color: #000000;*/
-  background-color: #333333;
+  background-color: #333333 !important;
 }
 
 .candidate-red
 {
   /*background-color: #bb0000;*/
-  background-color: #D9534F;
+  background-color: #D9534F !important;
 }
 
 .candidate-green
 {
   /*background-color: #006600;*/
-  background-color: #5CB85C;
+  background-color: #5CB85C !important;
 }
 
 .candidate-image-original p, .candidate-image-match p
@@ -241,7 +257,7 @@ html,body {
 #map-legend
 {
   padding: 5px;
-  background-color: #eee;
+  background-color: #eee !important;
   border: 1px #999 solid;
   position: absolute;
   z-index: 9999;
@@ -294,7 +310,7 @@ html,body {
 {
   text-align: center; 
   height: 80%; 
-  margin-top: 14px; 
+  margin-top: 0px; 
   padding: 13px; 
   color: #FFFFFF !important;
   font-size:22px;
@@ -388,7 +404,7 @@ a[href^="http://maps.google.com/maps"]
 .a4-letter
 {
   width:773px; 
-  height:1093px; 
+  height:1092px; 
 }
 
 .a4-letter-landscape
