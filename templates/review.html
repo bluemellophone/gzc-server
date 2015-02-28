@@ -20,45 +20,16 @@
             var markers = {};
             var empty = '{{ url_for('static', filename='images/empty.jpg') }}';
 
-            $( document ).ready( function() {
-                
-                var gps_url = "{{ gps_url }}";
-                $.getJSON(gps_url)
-                    .success(function( data ) {
-                        var last = undefined;
-                        $.each( data.track, function( key, marker ) {
-                            if(last === undefined)
-                            {
-                                last = marker.time;
-                                console.log("TRACK FIRST: " + last);
-                            }
-                            else
-                            {
-                                last = marker.time;   
-                            }
-                            track[last] = [marker.lat, marker.lon];
+            $(".analysis-image-hover").mouseenter(function() {
+                analysis = $(this).attr("analysis");       
+                $(this).animate({ backgroundColor: "#CCC", }, 500);
+                $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
+            });
 
-                        });
-                        console.log("TRACK LAST: " + last);
-
-                        updateCandidates();
-                    })
-                    .error(function() { 
-                        updateCandidates();
-                    });
-                
-
-                $(".analysis-image-hover").mouseenter(function() {
-                    analysis = $(this).attr("analysis");       
-                    $(this).animate({ backgroundColor: "#CCC", }, 500);
-                    $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
-                });
-
-                $(".analysis-image-hover").mouseleave(function() {
-                    analysis = $(this).attr("analysis");          
-                    $(this).animate({ backgroundColor: "transparent", }, 500);
-                    $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
-                });
+            $(".analysis-image-hover").mouseleave(function() {
+                analysis = $(this).attr("analysis");          
+                $(this).animate({ backgroundColor: "transparent", }, 500);
+                $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
             });
 
             function findClosestTime(metadata_time)
@@ -168,14 +139,6 @@
                 }
             }
 
-            function preSubmitPDF(car, person)
-            {
-                $("#javascript-renderMap-container").append('var track = '   + JSON.stringify(track)   + ';');
-                $("#javascript-renderMap-container").append('var markers = ' + JSON.stringify(markers) + ';');
-                $("#javascript-renderMap-container").append('renderMap();');
-                submitPDF(car, person);
-            }
-
             function clearSelected()
             {
                 selected = new Array();
@@ -227,14 +190,14 @@
                                     </div>
                                     <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover" id="analysis-image-hover-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}">
                                         <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
-            <!--                        
+<!--                        
                                         <br/>
                                         <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                         <br/>
                                         <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
                                         <br/>
                                         <span class="glyphicon glyphicon-barcode" aria-hidden="true"></span> 
-            -->
+-->
                                     </div>   
                                 </div>
                             {% endfor %}
@@ -243,7 +206,7 @@
                 {% endfor %}
                 </div>
                 <div class="send-container">
-                    <a onclick="preSubmitPDF('{{ car_str }}', '{{ person }}');" class="btn btn-xl btn-primary" id="send-button" disabled="disabled">PRINT</a>
+                    <a class="btn btn-xl btn-primary" id="send-button" disabled="disabled">PRINT</a>
                 </div>
             </div>
 
@@ -289,7 +252,10 @@
                                 </div>
                                 
                                 <div class="row" style="height:27%; margin: 0px;">
-                                    <div id="gps-map-canvas"></div>
+                                    <!-- <div id="gps-map-canvas"></div> -->
+                                    <div style="height: 100%; width: 100%; overflow: hidden;"> 
+                                        <object id="gps-map-canvas" type="text/html" data="{{ url_for('map') }}?offset=-110&car_str={{ car_str }}" style="width: 100%; overflow: hidden;"></object>
+                                    </div>
                                 </div>
 
                                 <div class="row candidate" style="height:2%; margin-top:1%;">
@@ -329,19 +295,6 @@
                                 </div>
                             </div>
                         </div>
-                
-                        <script type="text/javascript"
-                            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
-                        </script>
-
-                        <script type="text/javascript" id="javascript-renderMap-container">
-                            function renderMap()
-                            {
-                                var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
-                                // var center = new google.maps.LatLng(42.728, -73.687); // Troy
-                                loadGPSMap(track, markers, center);
-                            }
-                        </script>
                     </div>
                 </div>
             </div>

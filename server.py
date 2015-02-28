@@ -269,9 +269,6 @@ def review(car, person):
     analysis_dict = {}
     analysis_dict[person] = None
     gps_path = 'data/gps/%s/track.json' % (car_str, )
-    # Get GPS url
-    gps_url = url_for('static', filename=gps_path)
-
     # Find friends
     for friend in PERSON_LETTERS:
         friend_path = join('data', 'analysis', car_str, friend)
@@ -323,7 +320,7 @@ def review(car, person):
     if 'override' in request.args:
         valid = True
     return sf.template('review', car_str=car_str, car_color=car_color,
-                       car_number=car_number, person=person, gps_url=gps_url,
+                       car_number=car_number, person=person,
                        analysis_dict=analysis_dict, valid=valid)
 
 
@@ -509,10 +506,19 @@ def gps():
 @app.route('/map_online/submit', methods=['GET', 'POST'])
 def map_online():
     gpx_str = request.form.get('gps_data_str', None)
+    car_str  = request.args.get('car_str', None)
+    json_str = None
     if gpx_str is not None and len(gpx_str) > 0:
         json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
+    elif car_str is not None:
+        # Build analysis list
+        gps_path = 'data/gps/%s/track.json' % (car_str, )
+        if exists(gps_path):
+            print("FOUND GPS JSON")
+            with open(gps_path, 'r') as json_file:
+                json_str = json_file.read()
+            print(json_str)
     else:
-        json_str = None
         gpx_data  = request.files.get('gps_data_gpx', None)
         json_data = request.files.get('gps_data_json', None)
         if gpx_data is not None:
@@ -526,11 +532,19 @@ def map_online():
 
 @app.route('/map/submit', methods=['GET', 'POST'])
 def map():
-    gpx_str = request.form.get('gps_data_str', None)
+    gpx_str  = request.form.get('gps_data_str', None)
+    offset   = request.args.get('offset', None)
+    car_str  = request.args.get('car_str', None)
+    json_str = None
     if gpx_str is not None and len(gpx_str) > 0:
         json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
+    elif car_str is not None:
+        # Build analysis list
+        gps_path = 'data/gps/%s/track.json' % (car_str, )
+        if exists(gps_path):
+            with open(gps_path, 'r') as json_file:
+                json_str = json_file.read()
     else:
-        json_str = None
         gpx_data  = request.files.get('gps_data_gpx', None)
         json_data = request.files.get('gps_data_json', None)
         if gpx_data is not None:
@@ -539,7 +553,7 @@ def map():
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
-    return sf.template('map', data=json_str)
+    return sf.template('map', data=json_str, offset=offset)
 
 
 @app.route('/render/<car>/<person>', methods=['POST'])

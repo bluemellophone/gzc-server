@@ -4,7 +4,8 @@
     <style type="text/css">
         body
         {
-            overflow-y: hidden
+            overflow-y: hidden;
+            background-color: #ececec;
         }
 
         #gps-map-image
@@ -53,7 +54,11 @@
 
         var track = {};
         var markers = {};
-        var offset = 0;
+        {% if offset %}
+            var offset = {{ offset }};
+        {% else %}
+            var offset = undefined;
+        {% endif %}
         var image_width = 0;
         var image_height = 0;
 
@@ -89,9 +94,11 @@
             var img = document.getElementById('gps-map-image');
             image_width = img.clientWidth;
             image_height = img.clientHeight;
-            console.log(viewport_height + " " + image_height);
-            // offset = -1 * (image_height - viewport_height) / 2;
-            offset = 0;   
+            console.log("Image: " + viewport_height + " " + image_height);
+            // Assign offset, if not given by GET
+            temp = -1 * (image_height - viewport_height) / 2;
+            // temp = 0;   
+            offset = undef(offset, temp);
         }
 
         function centerMap()
@@ -112,12 +119,12 @@
             {
                 point = track[index];
                 // point
-                lat = point[0];
-                lon = point[1];
+                lat_orig = point[0];
+                lon_orig = point[1];
                 // console.log(lat + " " + lon);
                 // offset to map origin
-                lat -= boundsTL[0];
-                lon -= boundsTL[1];
+                lat = lat_orig - boundsTL[0];
+                lon = lon_orig - boundsTL[1];
                 // console.log(lat + " " + lon);
                 // offset to map origin
                 lat /= mapHeight;
@@ -131,8 +138,10 @@
                 lat *= image_height;
                 lon *= image_width;
                 // console.log(lat + " " + lon);
+                // fix height due to offset
+                lat += offset;
 
-                if(insidePoly(undefined, [lat, lon]))
+                if(insidePoly(undefined, [lon_orig, lat_orig]))
                     color = "#428BCA";
                 else
                     color = "#FF0000";
