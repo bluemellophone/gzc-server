@@ -1,26 +1,39 @@
 {% extends "layout.html" %}
 {% block content %}
-    <!-- 
-    <script type="text/javascript"
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
-    </script> 
-    -->
-    Top left
-        Latitude: -1.189528
-        Longitude: 36.572285
-
-    Bottom Right
-        Latitude: -1.549055
-        Longitude: 37.14572
 
     <style type="text/css">
-        #gps-map-canvas
+        body
+        {
+            overflow-y: hidden
+        }
+
+        #gps-map-image
         {
             width: 100%;
             position: absolute !important;
-            height: 100%;
             top: 0;
             left: 0;
+        }
+
+        #gps-map-points
+        {
+            width: 100%;
+            height: 100%;
+        }
+
+        #gps-map-points .point
+        {
+            position: absolute !important;
+            height: 3px;
+            width: 3px;
+            border-radius: 3px;
+            top: -3px;
+            left: -3px;
+        }
+
+        .content
+        {
+            margin-top: 0px;
         }
 
         .header, .footer
@@ -30,10 +43,24 @@
     </style>
 
     <script type="text/javascript">
+        var bounds = {"Ca":{"k":-1.4453662695101237,"j":-1.2789018455871297},"va":{"j":36.71580444335939,"k":36.99835906982423}};
+        var b1 = bounds['Ca']['j']
+        var b2 = bounds['Ca']['k']
+        var b3 = bounds['va']['j']
+        var b4 = bounds['va']['k']
+        var boundsTL = [b1, b3]
+        var boundsBR = [b2, b4]
+
         var track = {};
         var markers = {};
-        
-        $( document ).ready( function() {
+        var offset = 0;
+        var image_width = 0;
+        var image_height = 0;
+
+        $( window ).load( function() {
+            initValues();
+            centerMap();
+
             {% if data %}
                 {% autoescape false %}
                     var data = $.parseJSON('{{ data }}');
@@ -52,19 +79,72 @@
                     track[last] = [marker.lat, marker.lon];
                 });
                 console.log("TRACK LAST: " + last);
+                drawTrack(track);
             {% endif %}
-
-            renderMap();
         });
 
-        function renderMap()
+        function initValues()
         {
-            var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
-            // var center = new google.maps.LatLng(42.728, -73.687); // Troy
-            loadGPSMap(track, markers, center);
+            viewport_height = $( window.top ).height();
+            var img = document.getElementById('gps-map-image');
+            image_width = img.clientWidth;
+            image_height = img.clientHeight;
+            console.log(viewport_height + " " + image_height);
+            // offset = -1 * (image_height - viewport_height) / 2;
+            offset = 0;   
+        }
+
+        function centerMap()
+        {
+            $("#gps-map-image").css("top", offset + 'px');
+        }
+
+        function drawTrack(track)
+        {
+            $('#gps-map-points').html('');
+            var mapWidth = Math.abs(boundsBR[1] - boundsTL[1])
+            var mapHeight = Math.abs(boundsBR[0] - boundsTL[0])
+            console.log("MAP WIDTH:  " + mapWidth);
+            console.log("MAP HEIGHT: " + mapHeight);
+
+            var point;
+            for(var index in track)
+            {
+                point = track[index];
+                // point
+                lat = point[0];
+                lon = point[1];
+                // console.log(lat + " " + lon);
+                // offset to map origin
+                lat -= boundsTL[0];
+                lon -= boundsTL[1];
+                // console.log(lat + " " + lon);
+                // offset to map origin
+                lat /= mapHeight;
+                lon /= mapWidth;
+                // console.log(lat + " " + lon);
+                // abs percentage
+                lat = Math.abs(lat);
+                lon = Math.abs(lon);
+                // console.log(lat + " " + lon);
+                // find pixel absolute offset
+                lat *= image_height;
+                lon *= image_width;
+                // console.log(lat + " " + lon);
+
+                if(insidePoly(undefined, [lat, lon]))
+                    color = "#428BCA";
+                else
+                    color = "#FF0000";
+
+                $('#gps-map-points').append('<div class="point" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ';"></div>');
+            }
         }
     </script>
 
-    <div id="gps-map-canvas"></div>
+    <img id="gps-map-image" src="{{ url_for('static', filename='images/map_nairobi.png') }}"/>
+    <div id="gps-map-points">
+        <div class="point"></div>
+    </div>
 
 {% endblock %}

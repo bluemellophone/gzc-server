@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block content %}
+    
+    <script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
+    </script> 
+   
+    <style type="text/css">
+        #gps-map-canvas
+        {
+            width: 100%;
+            position: absolute !important;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .header, .footer
+        {
+            display: none;
+        }
+    </style>
+
+    <script type="text/javascript">
+        var track = {};
+        var markers = {};
+
+        $( document ).ready( function() {
+            {% if data %}
+                {% autoescape false %}
+                    var data = $.parseJSON('{{ data }}');
+                {% endautoescape %}
+                var last = undefined;
+                $.each( data.track, function( key, marker ) {
+                    if(last === undefined)
+                    {
+                        last = marker.time;
+                        console.log("TRACK FIRST: " + last);
+                    }
+                    else
+                    {
+                        last = marker.time;   
+                    }
+                    track[last] = [marker.lat, marker.lon];
+                });
+                console.log("TRACK LAST: " + last);
+            {% endif %}
+
+            renderMap();
+        });
+
+        function renderMap()
+        {
+            var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
+            // var center = new google.maps.LatLng(42.728, -73.687); // Troy
+            loadGPSMap(track, markers, center);
+        }
+    </script>
+
+    <div id="gps-map-canvas"></div>
+
+{% endblock %}

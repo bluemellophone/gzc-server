@@ -506,6 +506,24 @@ def gps():
     return sf.response(**extra)
 
 
+@app.route('/map_online/submit', methods=['GET', 'POST'])
+def map_online():
+    gpx_str = request.form.get('gps_data_str', None)
+    if gpx_str is not None and len(gpx_str) > 0:
+        json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
+    else:
+        json_str = None
+        gpx_data  = request.files.get('gps_data_gpx', None)
+        json_data = request.files.get('gps_data_json', None)
+        if gpx_data is not None:
+            gpx_str = gpx_data.stream.read()
+            if len(gpx_str) > 0:
+                json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
+        elif json_data is not None:
+            json_str = json_data.stream.read()
+    return sf.template('map_online', data=json_str)
+
+
 @app.route('/map/submit', methods=['GET', 'POST'])
 def map():
     gpx_str = request.form.get('gps_data_str', None)
