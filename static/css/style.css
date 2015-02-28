@@ -71,7 +71,7 @@ html,body {
   display: table-cell;
 }
 
-.analysis-image-hover
+.analysis-image-hover-container
 {
   float: none;
   display: table-cell;
@@ -79,6 +79,11 @@ html,body {
   font-size: 50px;
   vertical-align: middle;
   line-height: 0px;
+}
+
+.analysis-image-hover, .analysis-image-new
+{
+  padding: 15px 0px;
 }
 
 .analysis-image-correspondences

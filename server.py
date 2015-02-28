@@ -280,9 +280,12 @@ def review(car, person):
         # Load offset from json
         person_dir = join('data', 'images', car_str, letter)
         offset_path = join(person_dir, 'offset.json')
-        with open(offset_path, 'r') as off:
-            data = json.load(off)
-            offset = data.get('offset', 0.0)
+        if exists(offset_path):
+            with open(offset_path, 'r') as off:
+                data = json.load(off)
+                offset = data.get('offset', 0.0)
+        else:
+            offset = 0.0
         analysis_list = []
         for species in ['zebra', 'giraffe']:
             analysis_path = join('data', 'analysis', car_str, letter, species)
@@ -308,7 +311,7 @@ def review(car, person):
                     match           = url_for('static', filename=join(analysis_path, file_prefix + '_match.jpg'))
                     metadata        = ' '.join(metadata_list)
                     # Build analysis
-                    analysis = (len(analysis_list), correspondences, original, match, metadata)
+                    analysis = (len(analysis_list), conf, correspondences, original, match, metadata)
                     analysis_list.append(analysis)
             else:
                 print('ERROR: %s has no analysis' % (analysis_path, ))

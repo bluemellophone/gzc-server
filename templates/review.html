@@ -20,16 +20,34 @@
             var markers = {};
             var empty = '{{ url_for('static', filename='images/empty.jpg') }}';
 
-            $(".analysis-image-hover").mouseenter(function() {
-                analysis = $(this).attr("analysis");       
-                $(this).animate({ backgroundColor: "#CCC", }, 500);
-                $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
-            });
+            $( window ).ready( function() {
+                $(".analysis-image-hover").mouseenter(function() {
+                    analysis = $(this).attr("analysis");       
+                    $(this).animate({ backgroundColor: "#CCC", }, 500);
+                    $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
+                });
 
-            $(".analysis-image-hover").mouseleave(function() {
-                analysis = $(this).attr("analysis");          
-                $(this).animate({ backgroundColor: "transparent", }, 500);
-                $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
+                $(".analysis-image-hover").mouseleave(function() {
+                    analysis = $(this).attr("analysis");          
+                    $(this).animate({ backgroundColor: "transparent", }, 500);
+                    $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
+                });
+
+                $(".analysis-image-hover").mouseenter(function() {
+                    analysis = $(this).attr("analysis");       
+                    $(this).animate({ backgroundColor: "#CCC", }, 500);
+                    $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
+                });
+
+                $(".analysis-image-hover").mouseleave(function() {
+                    analysis = $(this).attr("analysis");          
+                    $(this).animate({ backgroundColor: "transparent", }, 500);
+                    $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
+                });
+
+                toggleAnalysis('{{ person }}-0', false);
+                toggleAnalysis('{{ person }}-1', false);
+                toggleAnalysis('{{ person }}-2', false);
             });
 
             function findClosestTime(metadata_time)
@@ -105,28 +123,41 @@
                         $("#candidate-image-match-" + i + " img").attr('src', empty);
                     }
                 }
-                renderMap();
+                // renderMap();
             }
 
-            function toggleAnalysis(analysis)
+            function toggleAnalysis(analysis, is_new)
             {
+                console.log("NEW: " + is_new);
                 if(selected.indexOf(analysis) > -1)
                 {
                     removeFromArray(analysis, selected)
                     $("#analysis-" + analysis).removeClass('analysis-selected');
-                    $("#analysis-" + analysis + " div span.glyphicon").addClass('glyphicon-heart-empty');
-                    updateCandidates();
-                }
-                else if(selected.length < 3)
-                {
-                    selected.push(analysis);
-                    $("#analysis-" + analysis).addClass('analysis-selected');
-                    $("#analysis-" + analysis + " div span.glyphicon").removeClass('glyphicon-heart-empty');
+                    $("#analysis-" + analysis + " div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
                     updateCandidates();
                 }
                 else
                 {
-                    $("#analysis-" + analysis + " div span.glyphicon").animate({ color: "#d9534f", }, 200).delay(200).animate({ color: "#333", }, 200);;
+                    while(selected.length >= 3)
+                    {
+                        var popped = selected[0];
+                        removeFromArray(popped, selected);
+                        $("#analysis-" + popped).removeClass('analysis-selected');
+                        $("#analysis-" + popped + " div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
+                        updateCandidates();
+                    }
+
+                    if(selected.length < 3)
+                    {
+                        selected.push(analysis);
+                        $("#analysis-" + analysis).addClass('analysis-selected');
+                        $("#analysis-" + analysis + " div span.glyphicon.glyphicon-heart").removeClass('glyphicon-heart-empty');
+                        updateCandidates();
+                    }
+                    else
+                    {
+                        $("#analysis-" + analysis + " div span.glyphicon").animate({ color: "#d9534f", }, 200).delay(200).animate({ color: "#333", }, 200);;
+                    }
                 }
 
                 if(selected.length >= 1)
@@ -137,6 +168,7 @@
                 {
                     $("#send-button").attr('disabled','disabled'); 
                 }
+                console.log(selected);
             }
 
             function clearSelected()
@@ -144,7 +176,7 @@
                 selected = new Array();
                 updateCandidates();
                 $(".analysis").removeClass('analysis-selected');
-                $(".analysis div span.glyphicon").addClass('glyphicon-heart-empty');
+                $(".analysis div span.glyphicon.glyphicon-heart").addClass('glyphicon-heart-empty');
             }
         </script>
 
@@ -177,10 +209,11 @@
                         <div role="tabpanel" class="tab-pane" id="person-{{ letter }}">
                     {% endif %}
                         <div class="analysis-container">
-                            {% for (i, correspondences, original, match, metadata) in analysis_dict[letter] %}
-                                <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" onclick="toggleAnalysis('{{ letter }}-{{ i }}');" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
+                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter] %}
+                                <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
                                     <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ letter }}-{{ i }}">
                                         <img src="{{ correspondences }}" />
+                                        <p style="color: #fff;">Confidence: {{ conf }}</p>
                                     </div>   
                                     <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-original" id="analysis-image-original-{{ letter }}-{{ i }}">
                                         <img src="{{ original }}" />
@@ -188,17 +221,15 @@
                                     <div class="col-xs-5 col-sm-5 col-md-5 analysis-image-match" id="analysis-image-match-{{ letter }}-{{ i }}">
                                         <img src="{{ match }}" />
                                     </div>
-                                    <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover" id="analysis-image-hover-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}">
-                                        <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
-<!--                        
+                                    <div class="col-xs-2 col-sm-2 col-md-2 analysis-image-hover-container">
+                                        <div class="analysis-image-hover" onclick="toggleAnalysis('{{ letter }}-{{ i }}', false);"  id="analysis-image-hover-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" style="width: 100%; height: 50%;">
+                                            <span class="glyphicon glyphicon-heart glyphicon-heart-empty" aria-hidden="true"></span>
+                                        </div>
                                         <br/>
-                                        <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-                                        <br/>
-                                        <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
-                                        <br/>
-                                        <span class="glyphicon glyphicon-barcode" aria-hidden="true"></span> 
--->
-                                    </div>   
+                                        <div class="analysis-image-new" onclick="toggleAnalysis('{{ letter }}-{{ i }}', true);"  style="width: 100%; height: 50%; margin-top: 10px;">
+                                            <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span> 
+                                        </div>
+                                    </div>  
                                 </div>
                             {% endfor %}
                         </div>
