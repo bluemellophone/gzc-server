@@ -51,6 +51,7 @@ GMT_OFFSET = 3  # Nairobi
 
 # Application
 app = flask.Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 256 * 1024 * 1024  # 256 Megabytes
 # print('GET:  ', request.args)
 # print('POST: ', request.form)
 # print('FILES:', request.files)

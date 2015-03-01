@@ -111,7 +111,7 @@
 
                         match_name = analysis.attr('metadata-match-annot-name');
                         match_unixtime = Number.parseFloat(analysis.attr('metadata-match-image-unixtime'));
-                        // match_unixtime += 60 * 60 * 3;  // Offset for Nairobi time
+                        match_unixtime += 60 * 60 * 3;  // Offset for Nairobi time
                         match_date = new Date(match_unixtime * 1000);
                         match_date_str = match_date.getUTCDate() + "/" + (match_date.getUTCMonth() + 1) + "/" + match_date.getUTCFullYear() + " " + zeroPad(match_date.getUTCHours(), 2) + ":" + zeroPad(match_date.getUTCMinutes(), 2);
 
