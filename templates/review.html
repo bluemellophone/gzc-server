@@ -106,7 +106,7 @@
 
                         original_name = analysis.attr('metadata-original-image-gname');
                         original_unixtime = Number.parseFloat(analysis.attr('metadata-original-image-unixtime'));
-                        original_unixtime += 60*60*24*365;
+                        // original_unixtime += 60*60*24*365;
                         original_date = new Date((original_unixtime + 60 * 60 * 3) * 1000);
                         original_date_str = original_date.getUTCDate() + "/" + (original_date.getUTCMonth() + 1) + "/" + original_date.getUTCFullYear() + " " + zeroPad(original_date.getUTCHours(), 2) + ":" + zeroPad(original_date.getUTCMinutes(), 2);
 
