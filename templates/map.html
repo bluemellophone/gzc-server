@@ -193,6 +193,7 @@
                     $('#gps-map-points').append('<div class="point" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
                 }
 
+                seen = []
                 for(var index in original_locations)
                 {
                     point = original_locations[index];
@@ -205,6 +206,12 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
+                        lat_lon_str = '%s_%s' % (int(lat), int(lon), )
+                        if lat_lon_str in seen:
+                            lat += 2
+                            lon += 2
+                            lat_lon_str = '%s_%s' % (int(lat), int(lon), )
+                        seen.append(lat_lon_str)
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
@@ -232,6 +239,7 @@
                     }
                 }
 
+                seen = []
                 for(var index in match_locations)
                 {
                     point = match_locations[index];
@@ -244,6 +252,12 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
+                        lat_lon_str = '%s_%s' % (int(lat), int(lon), )
+                        if lat_lon_str in seen:
+                            lat += 2
+                            lon += 2
+                            lat_lon_str = '%s_%s' % (int(lat), int(lon), )
+                        seen.append(lat_lon_str)
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
