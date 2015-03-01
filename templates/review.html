@@ -44,6 +44,11 @@
                     console.log("TRACK LAST : " + last);
                 {% endif %}
 
+                loadMap();
+                updateCandidates();
+            });
+
+            $( window ).ready( function() {
                 $(".analysis-image-hover-container").mouseenter(function() {
                     console.log('HOVER');
                     analysis = $(this).attr("analysis");       
@@ -57,9 +62,6 @@
                     $(this).animate({ backgroundColor: "transparent", }, 500);
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
                 });
-
-                loadMap();
-                updateCandidates();
             });
 
             function loadMap()
