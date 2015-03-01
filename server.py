@@ -328,8 +328,8 @@ def review(car, person):
     # Set valid if override
     if 'override' in request.args:
         valid = True
-    if data is not None:
-        data = data.replace("'", '"')
+    # if data is not None:
+    #     data = data.replace("'", '"')
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person,
                        analysis_dict=analysis_dict, data=data, valid=valid)
