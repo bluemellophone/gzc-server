@@ -206,12 +206,20 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
-                        lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        if(seen.indexOf(lat_lon_str) > -1)
-                            lat += 6;
-                            lon += 6;
-                            lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        seen.push(lat_lon_str);
+                        for(var idx in seen)
+                        {
+                            lat2 = seen[idx][0];
+                            lon2 = seen[idx][1];
+                            dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
+                            console.log(dist)
+                            if(dist < 5)
+                            {
+                                lat += 6;
+                                lon += 6;
+                                break;
+                            }
+                        }
+                        seen.push([lat, lon]);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
@@ -253,12 +261,20 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
-                        lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        if(seen.indexOf(lat_lon_str) > -1)
-                            lat += 6;
-                            lon += 6;
-                            lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        seen.push(lat_lon_str);
+                        for(var idx in seen)
+                        {
+                            lat2 = seen[idx][0];
+                            lon2 = seen[idx][1];
+                            dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
+                            console.log(dist)
+                            if(dist < 5)
+                            {
+                                lat += 6;
+                                lon += 6;
+                                break;
+                            }
+                        }
+                        seen.push([lat, lon]);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
