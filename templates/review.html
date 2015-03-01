@@ -301,7 +301,7 @@
                         <div role="tabpanel" class="tab-pane" id="person-{{ letter }}">
                     {% endif %}
                         <div class="analysis-container">
-                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter][:5] %}
+                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter] %}
                                 <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
                                     <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ letter }}-{{ i }}">
                                         <img src="{{ correspondences }}" />
