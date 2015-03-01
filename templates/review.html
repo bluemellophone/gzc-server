@@ -113,8 +113,16 @@
 
                         track_index = findClosestTime(original_unixtime);
                         console.log(original_unixtime, track_index);
-                        original_image_lat = Number.parseFloat(track[track_index][0]).toFixed(6);
-                        original_image_lon = Number.parseFloat(track[track_index][1]).toFixed(6);
+                        if(track_index !== undefined)
+                        {
+                            original_image_lat = Number.parseFloat(track[track_index][0]).toFixed(6);
+                            original_image_lon = Number.parseFloat(track[track_index][1]).toFixed(6);
+                        }
+                        else
+                        {
+                            original_image_lat = 'Unknown';
+                            original_image_lon = 'Unknown';
+                        }
 
                         match_image_lat = Number.parseFloat(analysis.attr('metadata-match-image-lat')).toFixed(6);
                         match_image_lon = Number.parseFloat(analysis.attr('metadata-match-image-lon')).toFixed(6);
