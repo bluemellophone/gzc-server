@@ -328,9 +328,11 @@ def review(car, person):
     # Set valid if override
     if 'override' in request.args:
         valid = True
+    if data is not None:
+        data = data.replace("'", '"')
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person,
-                       analysis_dict=analysis_dict, data=data.replace("'", '"'), valid=valid)
+                       analysis_dict=analysis_dict, data=data, valid=valid)
 
 
 @app.route('/print/<car>/<person>')
@@ -535,7 +537,9 @@ def map_online():
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
-    return sf.template('map_online', data=json_str.replace("'", '"'))
+    if json_str is not None:
+        json_str = json_str.replace("'", '"')
+    return sf.template('map_online', data=json_str)
 
 
 @app.route('/map/submit', methods=['GET', 'POST'])
@@ -564,7 +568,9 @@ def map():
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
-    return sf.template('map', data=json_str.replace("'", '"'), offset=offset,
+    if json_str is not None:
+        json_str = json_str.replace("'", '"')
+    return sf.template('map', data=json_str, offset=offset,
                        original_locations=original_locations,
                        match_locations=match_locations)
 
