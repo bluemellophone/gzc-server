@@ -45,12 +45,14 @@
                 {% endif %}
 
                 $(".analysis-image-hover-container").mouseenter(function() {
+                    console.log('HOVER');
                     analysis = $(this).attr("analysis");       
                     $(this).animate({ backgroundColor: "#CCC", }, 500);
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
                 });
 
                 $(".analysis-image-hover-container").mouseleave(function() {
+                    console.log('LEAVE');
                     analysis = $(this).attr("analysis");          
                     $(this).animate({ backgroundColor: "transparent", }, 500);
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
@@ -263,6 +265,7 @@
                 content = $('#gps-map-canvas').contents().find('.content-include').html();
                 $('#gps-map-canvas-container').html(content);
                 submitPDF(car_str, person);
+                print();
             }
         </script>
 
