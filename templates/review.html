@@ -26,7 +26,7 @@
             $( window ).load( function() {
                 {% if data %}
                     {% autoescape false %}
-                        var data = $.parseJSON('{{ data }}');
+                        var data = $.parseJSON("{{ data }}");
                     {% endautoescape %}
                     var last = undefined;
                     $.each( data.track, function( key, marker ) {
