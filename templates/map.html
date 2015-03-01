@@ -211,7 +211,7 @@
                             lat += 2;
                             lon += 2;
                             lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        seen.append(lat_lon_str);
+                        seen.push(lat_lon_str);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
@@ -257,7 +257,7 @@
                             lat += 2;
                             lon += 2;
                             lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
-                        seen.append(lat_lon_str);
+                        seen.push(lat_lon_str);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
