@@ -206,12 +206,12 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
-                        lat_lon_str = '%s_%s' % (int(lat), int(lon), )
-                        if lat_lon_str in seen:
-                            lat += 2
-                            lon += 2
-                            lat_lon_str = '%s_%s' % (int(lat), int(lon), )
-                        seen.append(lat_lon_str)
+                        lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
+                        if(seen.indexOf(lat_lon_str) > -1)
+                            lat += 2;
+                            lon += 2;
+                            lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
+                        seen.append(lat_lon_str);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
@@ -252,12 +252,12 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
-                        lat_lon_str = '%s_%s' % (int(lat), int(lon), )
-                        if lat_lon_str in seen:
-                            lat += 2
-                            lon += 2
-                            lat_lon_str = '%s_%s' % (int(lat), int(lon), )
-                        seen.append(lat_lon_str)
+                        lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
+                        if(seen.indexOf(lat_lon_str) > -1)
+                            lat += 2;
+                            lon += 2;
+                            lat_lon_str = Number.parseInt(lat) + "_" + Number.parseInt(lon);
+                        seen.append(lat_lon_str);
 
                         if(insidePoly(undefined, [lon_orig, lat_orig]))
                         {
