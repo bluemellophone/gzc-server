@@ -101,6 +101,7 @@
             var image_width = 0;
             var image_height = 0;
 
+            var last = undefined;
             $( window ).load( function() {
                 initValues();
                 centerMap();
@@ -109,7 +110,6 @@
                     {% autoescape false %}
                         var data = $.parseJSON('{{ data }}');
                     {% endautoescape %}
-                    var last = undefined;
                     $.each( data.track, function( key, marker ) {
                         if(last === undefined)
                         {
@@ -177,6 +177,10 @@
                 var point;
                 for(var index in track)
                 {
+                    if(index < last - 7200)
+                    {
+                        continue;
+                    }
                     point = track[index];
                     // point
                     lat_orig = point[0];
