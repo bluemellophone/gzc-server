@@ -261,6 +261,7 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
+                        one = false;
                         for(var idx in seen)
                         {
                             lat2 = seen[idx][0];
@@ -269,9 +270,18 @@
                             console.log(dist)
                             if(dist < 5)
                             {
-                                lat += 6;
-                                lon += 6;
-                                break;
+                                if(one)
+                                {
+                                    lat += 4;
+                                    lon += 4;
+                                    one = true;
+                                }
+                                else
+                                {
+                                    lat += 4;
+                                    lon -= 4;
+                                    one = true;   
+                                }
                             }
                         }
                         seen.push([lat, lon]);
