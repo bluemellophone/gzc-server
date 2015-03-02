@@ -57,6 +57,16 @@
                 left: -10px;
             }
 
+            .big-point-dot
+            {
+                background-color: #fff;
+                height: 4px;
+                width: 4px;
+                border-radius: 4px;
+                margin-left: 2px;
+                margin-top: 2px;
+            }
+
             #gps-map-points .point-boundary
             {
                 position: absolute !important;
@@ -195,83 +205,6 @@
                 }
 
                 seen = []
-                for(var index in original_locations)
-                {
-                    point = original_locations[index];
-                    // console.log(point);
-                    if(point !== null)
-                    {
-                        // point
-                        lat_orig = point[0];
-                        lon_orig = point[1];
-                        mapped_point = mapPoint(lat_orig, lon_orig)
-                        lat = mapped_point[0] -= 5;
-                        lon = mapped_point[1] -= 5;
-                        counter = 0;
-                        zindex = 9999;
-                        for(var idx in seen)
-                        {
-                            lat2 = seen[idx][0];
-                            lon2 = seen[idx][1];
-                            dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
-                            // console.log(dist)
-                            if(dist < 5)
-                            {
-                                counter++;
-                                if(counter == 1)
-                                {
-                                    lat += 4;
-                                    lon += 4;
-                                    zindex -= 1;
-                                }
-                                else if(counter == 2)
-                                {
-                                    lon -= 8; 
-                                    zindex -= 1;
-                                }
-                                else if(counter == 3)
-                                {
-                                    lat -= 8; 
-                                    zindex -= 1;
-                                }
-                                else if(counter == 4)
-                                {
-                                    lon += 8; 
-                                    zindex -= 1;
-                                    break;
-                                }
-                            }
-                        }
-                        seen.push([lat, lon]);
-
-                        if(insidePoly(undefined, [lon_orig, lat_orig]))
-                        {
-                            if(index == 0)
-                            {
-                                class_str = 'candidate-black';
-                            }
-                            else if(index == 1)
-                            {
-                                class_str = 'candidate-red';
-                            }
-                            else
-                            {
-                                class_str = 'candidate-green';
-                            }
-                            color = '';
-                        }
-                        else
-                        {
-                            class_str = '';
-                            color = "#FFFF00 !important";
-                        }
-
-                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"></div>');
-                    }
-                }
-                // console.log(seen);
-
-                seen = []
                 for(var index in match_locations)
                 {
                     for(var index2 in match_locations[index])
@@ -345,8 +278,85 @@
                                 color = "#FFFF00 !important";
                             }
 
-                            $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"></div>');
+                            $('#gps-map-points').append('<div class="big-point ' + class_str + '" id="big-point-match-' + index + '-' + index2 + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"></div>');
                         }
+                    }
+                }
+                // console.log(seen);
+
+                seen = []
+                for(var index in original_locations)
+                {
+                    point = original_locations[index];
+                    // console.log(point);
+                    if(point !== null)
+                    {
+                        // point
+                        lat_orig = point[0];
+                        lon_orig = point[1];
+                        mapped_point = mapPoint(lat_orig, lon_orig)
+                        lat = mapped_point[0] -= 5;
+                        lon = mapped_point[1] -= 5;
+                        counter = 0;
+                        zindex = 9999;
+                        for(var idx in seen)
+                        {
+                            lat2 = seen[idx][0];
+                            lon2 = seen[idx][1];
+                            dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
+                            // console.log(dist)
+                            if(dist < 5)
+                            {
+                                counter++;
+                                if(counter == 1)
+                                {
+                                    lat += 4;
+                                    lon += 4;
+                                    zindex -= 1;
+                                }
+                                else if(counter == 2)
+                                {
+                                    lon -= 8; 
+                                    zindex -= 1;
+                                }
+                                else if(counter == 3)
+                                {
+                                    lat -= 8; 
+                                    zindex -= 1;
+                                }
+                                else if(counter == 4)
+                                {
+                                    lon += 8; 
+                                    zindex -= 1;
+                                    break;
+                                }
+                            }
+                        }
+                        seen.push([lat, lon]);
+
+                        if(insidePoly(undefined, [lon_orig, lat_orig]))
+                        {
+                            if(index == 0)
+                            {
+                                class_str = 'candidate-black';
+                            }
+                            else if(index == 1)
+                            {
+                                class_str = 'candidate-red';
+                            }
+                            else
+                            {
+                                class_str = 'candidate-green';
+                            }
+                            color = '';
+                        }
+                        else
+                        {
+                            class_str = '';
+                            color = "#FFFF00 !important";
+                        }
+
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" id="big-point-original-' + index + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"><div class="big-point-dot"></div></div>');
                     }
                 }
                 // console.log(seen);

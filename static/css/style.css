@@ -410,7 +410,7 @@ a[href^="http://maps.google.com/maps"]
 
 .a4-letter-landscape
 {
-  width:1093px; 
+  width:1092px; 
   height:773px; 
 }
 
@@ -598,9 +598,15 @@ a[href^="http://maps.google.com/maps"]
   {
     margin: 0px;
   }
+  
   .content
   {
     margin-top: 0px !important;
+  }
+  
+  #content-left
+  {
+    height: 0px;
   }
 
   #content-left.col-md-6 
