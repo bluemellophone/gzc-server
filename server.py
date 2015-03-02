@@ -266,6 +266,10 @@ def status():
 def review(car, person):
     # Process the car and person strings
     car_str, car_number, car_color, person = sf.process_person(car, person)
+    # Load
+    fix_minute = int(request.args.get('fix_hour', 0))
+    fix_hour   = int(request.args.get('fix_minute', 0))
+    fix_day    = int(request.args.get('fix_day', 0))
     # Build analysis list
     valid = False
     data = None
@@ -333,7 +337,8 @@ def review(car, person):
     #     data = data.replace("'", '"')
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person,
-                       analysis_dict=analysis_dict, data=data, valid=valid)
+                       analysis_dict=analysis_dict, data=data, valid=valid,
+                       fix_minute=fix_minute, fix_hour=fix_hour, fix_day=fix_day)
 
 
 @app.route('/print/<car>/<person>')
