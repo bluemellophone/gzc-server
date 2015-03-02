@@ -24,44 +24,57 @@
             var match_locations = new Array();
 
             $( window ).load( function() {
-                {% if data %}
-                    {% autoescape false %}
-                        var data = $.parseJSON('{{ data }}');
-                    {% endautoescape %}
-                    var last = undefined;
-                    $.each( data.track, function( key, marker ) {
-                        if(last === undefined)
-                        {
-                            last = marker.time;
-                            console.log("TRACK FIRST: " + last);
-                        }
-                        else
-                        {
-                            last = marker.time;   
-                        }
-                        track[last] = [marker.lat, marker.lon];
-                    });
-                    console.log("TRACK LAST : " + last);
-                {% endif %}
-
                 loadMap();
                 updateCandidates();
             });
 
             $( window ).ready( function() {
                 $(".analysis-image-hover-container").mouseenter(function() {
-                    console.log('HOVER');
                     analysis = $(this).attr("analysis");       
                     $(this).animate({ backgroundColor: "#CCC", }, 500);
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "0", }, 500);
                 });
 
                 $(".analysis-image-hover-container").mouseleave(function() {
-                    console.log('LEAVE');
                     analysis = $(this).attr("analysis");          
                     $(this).animate({ backgroundColor: "transparent", }, 500);
                     $("#analysis-image-correspondences-" + analysis).animate({ left: "-100%", }, 500);
                 });
+
+                {% if data %}
+                    {% autoescape false %}
+                        var data = $.parseJSON('{{ data }}');
+                    {% endautoescape %}
+                    var fisrt = undefined;
+                    var last = undefined;
+                    $.each( data.track, function( key, marker ) {
+                        if(last === undefined)
+                        {
+                            first = marker.time;
+                        }
+                        last = marker.time;
+                        track[last] = [marker.lat, marker.lon];
+                    });
+                {% endif %}
+
+                first_unixtime = Number.parseFloat(first);
+                first_date = new Date((first_unixtime + 60 * 60 * 3) * 1000);
+                first_date_str = first_date.getUTCDate() + "/" + (first_date.getUTCMonth() + 1) + "/" + first_date.getUTCFullYear() + " " + zeroPad(first_date.getUTCHours(), 2) + ":" + zeroPad(first_date.getUTCMinutes(), 2);
+                $('#track-start-time').html(first_date_str);
+
+                end_unixtime = Number.parseFloat(last);
+                end_date = new Date((end_unixtime + 60 * 60 * 3) * 1000);
+                end_date_str = end_date.getUTCDate() + "/" + (end_date.getUTCMonth() + 1) + "/" + end_date.getUTCFullYear() + " " + zeroPad(end_date.getUTCHours(), 2) + ":" + zeroPad(end_date.getUTCMinutes(), 2);
+                $('#track-end-time').html(end_date_str);
+
+                $('.picture-process-time').each(function() {
+                    image_unixtime = Number.parseFloat($(this).html());
+                    image_unixtime += ({{ fix_minute }} * 60) + ({{ fix_hour }} * 60 * 60) + ({{ fix_day }} * 60 * 60 * 24)
+                    image_date = new Date((image_unixtime + 60 * 60 * 3) * 1000);
+                    image_date_str = image_date.getUTCDate() + "/" + (image_date.getUTCMonth() + 1) + "/" + image_date.getUTCFullYear() + " " + zeroPad(image_date.getUTCHours(), 2) + ":" + zeroPad(image_date.getUTCMinutes(), 2);
+                    $(this).html(image_date_str);
+                });
+
             });
 
             function loadMap()
@@ -103,15 +116,17 @@
                         var candidate = selected[i];
                         var candidate_is_new = isnew[i];
                         var analysis = $("#analysis-" + candidate);
+                        var metadata_str = analysis.attr('metadata-json');
+                        metadata = $.parseJSON(metadata_str);
 
-                        original_name = analysis.attr('metadata-original-image-gname');
-                        original_unixtime = Number.parseFloat(analysis.attr('metadata-original-image-unixtime'));
+                        original_name = metadata['original_image_gname'];
+                        original_unixtime = Number.parseFloat(metadata['original_image_unixtime']);
                         original_unixtime += ({{ fix_minute }} * 60) + ({{ fix_hour }} * 60 * 60) + ({{ fix_day }} * 60 * 60 * 24)
                         original_date = new Date((original_unixtime + 60 * 60 * 3) * 1000);
                         original_date_str = original_date.getUTCDate() + "/" + (original_date.getUTCMonth() + 1) + "/" + original_date.getUTCFullYear() + " " + zeroPad(original_date.getUTCHours(), 2) + ":" + zeroPad(original_date.getUTCMinutes(), 2);
 
-                        match_name = analysis.attr('metadata-match-annot-name');
-                        match_unixtime = Number.parseFloat(analysis.attr('metadata-match-image-unixtime'));
+                        match_name = metadata['match_annot_name'];
+                        match_unixtime = Number.parseFloat(metadata['match_image_unixtime']);
                         // match_unixtime += 60 * 60 * 3;  // Offset for Nairobi time
                         match_date = new Date(match_unixtime * 1000);
                         match_date_str = match_date.getUTCDate() + "/" + (match_date.getUTCMonth() + 1) + "/" + match_date.getUTCFullYear() + " " + zeroPad(match_date.getUTCHours(), 2) + ":" + zeroPad(match_date.getUTCMinutes(), 2);
@@ -129,8 +144,8 @@
                             original_image_lon = 'Unknown';
                         }
 
-                        match_image_lat = Number.parseFloat(analysis.attr('metadata-match-image-lat')).toFixed(6);
-                        match_image_lon = Number.parseFloat(analysis.attr('metadata-match-image-lon')).toFixed(6);
+                        match_image_lat = Number.parseFloat(metadata['match_image_lat']).toFixed(6);
+                        match_image_lon = Number.parseFloat(metadata['match_image_lon']).toFixed(6);
 
                         $("#candidate-image-original-" + i + " img").attr('src', $("#analysis-image-original-" + candidate + " img").attr('src') );
 
@@ -160,19 +175,8 @@
                             $('#candidate-match-' + i + '-match-name').html(match_name);
                             $('#candidate-match-' + i + '-match-time-lat-lon').html('First seen ' + match_date_str + ' at ' + match_image_lat + ', ' + match_image_lon);
 
-                            match_locations.push([match_image_lat, match_image_lon]);
+                            match_locations.push(metadata['match_annot_locations']);
                         }
-                        // var metadata_time = analysis.attr("metadata-original-image-unixtime");
-                        // metadata_time = Number.parseFloat(metadata_time);
-                        // console.log(candidate + " " + metadata_time);
-                        // var close = findClosestTime(metadata_time);
-                        // markers[i] = track[close];
-
-                        // content = template.format(
-                        //     analysis.attr("metadata-original-image-gname"), 
-                        //     analysis.attr("metadata-original-image-unixtime")
-                        // );
-                        // $("#candidate-information-" + i).html(content); 
                     }
                     else
                     {
@@ -301,7 +305,13 @@
                         <div role="tabpanel" class="tab-pane" id="person-{{ letter }}">
                     {% endif %}
                         <div class="analysis-container">
-                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter] %}
+                            <div class="row" style="text-align: center; width: 100%;margin-top: 15px;margin-bottom: -15px;">                  
+                                START: <span id="track-start-time"></span> &lt; [ FIRST: <span class="picture-process-time">{{ analysis_dict[letter][0] }}</span> - LAST: <span class="picture-process-time">{{ analysis_dict[letter][1] }}</span> ] &lt; END: <span id="track-end-time"></span>
+                                <br/>
+                                [OFFSET: {{ offset }}]
+                            </div>
+
+                            {% for (i, conf, correspondences, original, match, metadata) in analysis_dict[letter][2] %}
                                 <div class="row analysis" id="analysis-{{ letter }}-{{ i }}" analysis="{{ letter }}-{{ i }}" {{ metadata }}>                  
                                     <div class="col-xs-10 col-sm-10 col-md-10 analysis-image-correspondences" id="analysis-image-correspondences-{{ letter }}-{{ i }}">
                                         <img src="{{ correspondences }}" />

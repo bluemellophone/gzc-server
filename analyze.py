@@ -231,6 +231,14 @@ def postprocess_result(ibs, _tup, params):
         status = cv2.imwrite(orig_file, img_orig_bbox)
         print('[analyze] writing original image with bounding box to %s (success = %s)' % (orig_file, status))
 
+        # Find locations of other seen matches
+        match_name = ibs.get_annot_names(match_aid)
+        aid_list_all = ibs.get_valid_aids()
+        name_list_all = ibs.get_annot_names(aid_list_all)
+        aid_list_location = [ aid for aid, name in zip(aid_list_all, name_list_all) if name == match_name ]
+        gid_list_location = ibs.get_annot_gids(aid_list_location)
+        annot_location_list = ibs.get_image_gps(gid_list_location)
+
         # get interesting information about the query animal
         information = {
             'original_image_path':     ibs.get_image_paths(original_gid),
@@ -246,6 +254,7 @@ def postprocess_result(ibs, _tup, params):
             'match_annot_name':        ibs.get_annot_names(match_aid),
             'match_annot_species':     ibs.get_annot_species(match_aid),
             'match_annot_viewpoint':   ibs.get_annot_yaws(match_aid),
+            'match_annot_locations':   annot_location_list,
         }
         json_file = join(animal_dir, '%s_%d_data.json' % (fname_base, qx))
         print('[analyze] writing information file to %s' % (json_file))

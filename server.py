@@ -121,7 +121,6 @@ def workspace():
 @app.route('/status')
 def status():
     cars = {}
-
     # STEP 1 - GPS
     try:
         gps_path      = join(DEFAULT_DATA_DIR, 'gps')
@@ -286,6 +285,7 @@ def review(car, person):
     for letter in analysis_dict.keys():
         # Load offset from json
         person_dir = join('data', 'images', car_str, letter)
+        # Load offset
         offset_path = join(person_dir, 'offset.json')
         if exists(offset_path):
             with open(offset_path, 'r') as off:
@@ -293,6 +293,12 @@ def review(car, person):
                 offset = data.get('offset', 0.0)
         else:
             offset = 0.0
+        # Load first image
+        reported_time_first = vt.parse_exif_unixtime(join(person_dir, 'first.jpg'))
+        reported_time_first += offset
+        reported_time_last = vt.parse_exif_unixtime(join(person_dir, 'last.jpg'))
+        reported_time_last += offset
+        # Load analysis
         analysis_list = []
         for species in ['zebra', 'giraffe']:
             analysis_path = join('data', 'analysis', car_str, letter, species)
@@ -305,27 +311,26 @@ def review(car, person):
                 for (file_prefix, conf) in confidence_list:
                     # print(file_prefix, conf)
                     # Load metadata
-                    metadata_list = []
+                    data_str = ''
                     with open(join(analysis_path, file_prefix + '_data.json')) as f:
                         data = json.load(f)
                         data['original_image_unixtime'] += offset
-                        for key in sorted(data.keys()):
-                            metadata = 'metadata-%s=%s' % (key.replace("_", "-"), data[key], )
-                            metadata_list.append(metadata)
+                        if 'match_annot_locations' not in data:
+                            data['match_annot_locations'] = []
+                        data_str = json.dumps(data).replace(' ', '').replace("'", '"')
                     # Load image paths
                     correspondences = url_for('static', filename=join(analysis_path, file_prefix + '_correspondences.jpg'))
                     original        = url_for('static', filename=join(analysis_path, file_prefix + '_original.jpg'))
                     match           = url_for('static', filename=join(analysis_path, file_prefix + '_match.jpg'))
-                    metadata        = ' '.join(metadata_list)
+                    metadata        = 'metadata-json=%s' % (data_str, )
                     # Build analysis
                     analysis = (len(analysis_list), conf, correspondences, original, match, metadata)
                     analysis_list.append(analysis)
             else:
                 print('ERROR: %s has no analysis' % (analysis_path, ))
-        analysis_dict[letter] = analysis_list
+        analysis_dict[letter] = (reported_time_first, reported_time_last, analysis_list)
     # Set valid flag
     if exists(gps_path):
-        print("FOUND GPS JSON")
         with open(gps_path, 'r') as json_file:
             data = json_file.read()
     if exists(gps_path) and len(analysis_dict[person]) >= 1:
@@ -338,7 +343,8 @@ def review(car, person):
     return sf.template('review', car_str=car_str, car_color=car_color,
                        car_number=car_number, person=person,
                        analysis_dict=analysis_dict, data=data, valid=valid,
-                       fix_minute=fix_minute, fix_hour=fix_hour, fix_day=fix_day)
+                       fix_minute=fix_minute, fix_hour=fix_hour, fix_day=fix_day,
+                       offset=offset)
 
 
 @app.route('/print/<car>/<person>')
@@ -378,6 +384,7 @@ def images():
     person        = request.form.get('person_letter', '').lower()
     time_hour     = request.form.get('image_first_time_hour', '')
     time_minute   = request.form.get('image_first_time_minute', '')
+    print("IMAGES SUBMITTED FOR %s %s %s" % (car_number, car_color, person, ))
 
     # Validate
     if car_number not in CAR_NUMBER:
@@ -463,6 +470,7 @@ def gps():
     time_hour    = request.form.get('gps_start_time_hour', '')
     time_minute  = request.form.get('gps_start_time_minute', '')
     track_number = request.form.get('track_number', '')
+    print("GPS SUBMITTED FOR %s %s %s" % (car_number, car_color, ))
 
     # Validate
     if car_number not in CAR_NUMBER:
@@ -531,7 +539,6 @@ def map_online():
         # Build analysis list
         gps_path = 'data/gps/%s/track.json' % (car_str, )
         if exists(gps_path):
-            print("FOUND GPS JSON")
             with open(gps_path, 'r') as json_file:
                 json_str = json_file.read()
     else:
@@ -550,14 +557,16 @@ def map_online():
 
 @app.route('/map/submit', methods=['GET', 'POST'])
 def map():
-    print('GET:  ', request.args)
     gpx_str  = request.form.get('gps_data_str', None)
     offset   = request.args.get('offset', None)
     car_str  = request.args.get('car_str', None)
     original_locations = request.args.get('original_locations', '[undefined, undefined, undefined]')
     match_locations    = request.args.get('match_locations', '[undefined, undefined, undefined]')
     json_str = None
+    print("MAP REQUESTED FOR %s" % (car_str, ))
+
     if gpx_str is not None and len(gpx_str) > 0:
+        print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
         json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
     elif car_str is not None:
         # Build analysis list

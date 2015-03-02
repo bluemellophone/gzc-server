@@ -52,6 +52,7 @@
                 height: 10px;
                 width: 10px;
                 border-radius: 10px;
+                border: 1px solid #fff;
                 top: -10px;
                 left: -10px;
             }
@@ -197,7 +198,7 @@
                 for(var index in original_locations)
                 {
                     point = original_locations[index];
-                    console.log(point);
+                    // console.log(point);
                     if(point !== null)
                     {
                         // point
@@ -206,24 +207,37 @@
                         mapped_point = mapPoint(lat_orig, lon_orig)
                         lat = mapped_point[0] -= 5;
                         lon = mapped_point[1] -= 5;
-                        one = false;
+                        counter = 0;
+                        zindex = 9999;
                         for(var idx in seen)
                         {
                             lat2 = seen[idx][0];
                             lon2 = seen[idx][1];
                             dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
-                            console.log(dist)
+                            // console.log(dist)
                             if(dist < 5)
                             {
-                                if(!one)
+                                counter++;
+                                if(counter == 1)
                                 {
                                     lat += 4;
                                     lon += 4;
-                                    one = true;
+                                    zindex -= 1;
                                 }
-                                else
+                                else if(counter == 2)
                                 {
                                     lon -= 8; 
+                                    zindex -= 1;
+                                }
+                                else if(counter == 3)
+                                {
+                                    lat -= 8; 
+                                    zindex -= 1;
+                                }
+                                else if(counter == 4)
+                                {
+                                    lon += 8; 
+                                    zindex -= 1;
                                     break;
                                 }
                             }
@@ -252,74 +266,90 @@
                             color = "#FFFF00 !important";
                         }
 
-                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"></div>');
                     }
                 }
-                console.log(seen);
+                // console.log(seen);
 
                 seen = []
                 for(var index in match_locations)
                 {
-                    point = match_locations[index];
-                    console.log(point);
-                    if(point !== null)
+                    for(var index2 in match_locations[index])
                     {
-                        // point
-                        lat_orig = point[0];
-                        lon_orig = point[1];
-                        mapped_point = mapPoint(lat_orig, lon_orig)
-                        lat = mapped_point[0] -= 5;
-                        lon = mapped_point[1] -= 5;
-                        one = false;
-                        for(var idx in seen)
+                        point = match_locations[index][index2];
+                        // console.log(point);
+                        if(point !== null)
                         {
-                            lat2 = seen[idx][0];
-                            lon2 = seen[idx][1];
-                            dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
-                            console.log(dist)
-                            if(dist < 5)
+                            // point
+                            lat_orig = point[0];
+                            lon_orig = point[1];
+                            mapped_point = mapPoint(lat_orig, lon_orig)
+                            lat = mapped_point[0] -= 5;
+                            lon = mapped_point[1] -= 5;
+                            counter = 0;
+                            zindex = 9999;
+                            for(var idx in seen)
                             {
-                                if(!one)
+                                lat2 = seen[idx][0];
+                                lon2 = seen[idx][1];
+                                dist = Math.sqrt((lat - lat2) * (lat - lat2) + (lon - lon2) * (lon - lon2))
+                                // console.log(dist)
+                                if(dist < 5)
                                 {
-                                    lat += 4;
-                                    lon += 4;
-                                    one = true;
+                                    counter++;
+                                    if(counter == 1)
+                                    {
+                                        lat += 4;
+                                        lon += 4;
+                                        zindex -= 1;
+                                    }
+                                    else if(counter == 2)
+                                    {
+                                        lon -= 9; 
+                                        zindex -= 1;
+                                    }
+                                    else if(counter == 3)
+                                    {
+                                        lat -= 8; 
+                                        zindex -= 1;
+                                    }
+                                    else if(counter == 4)
+                                    {
+                                        lon += 9; 
+                                        zindex -= 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            seen.push([lat, lon]);
+
+                            if(insidePoly(undefined, [lon_orig, lat_orig]))
+                            {
+                                if(index == 0)
+                                {
+                                    class_str = 'candidate-black';
+                                }
+                                else if(index == 1)
+                                {
+                                    class_str = 'candidate-red';
                                 }
                                 else
                                 {
-                                    lon -= 8; 
-                                    break;
+                                    class_str = 'candidate-green';
                                 }
-                            }
-                        }
-                        seen.push([lat, lon]);
-
-                        if(insidePoly(undefined, [lon_orig, lat_orig]))
-                        {
-                            if(index == 0)
-                            {
-                                class_str = 'candidate-black';
-                            }
-                            else if(index == 1)
-                            {
-                                class_str = 'candidate-red';
+                                color = '';
                             }
                             else
                             {
-                                class_str = 'candidate-green';
+                                class_str = '';
+                                color = "#FFFF00 !important";
                             }
-                            color = '';
-                        }
-                        else
-                        {
-                            class_str = '';
-                            color = "#FFFF00 !important";
-                        }
 
-                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important;"></div>');
+                            $('#gps-map-points').append('<div class="big-point ' + class_str + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"></div>');
+                        }
                     }
                 }
-                console.log(seen);
+                // console.log(seen);
             }
         </script>
 
