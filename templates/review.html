@@ -176,6 +176,7 @@
                             $('#candidate-match-' + i + '-match-time-lat-lon').html('First seen ' + match_date_str + ' at ' + match_image_lat + ', ' + match_image_lon);
 
                             match_locations.push(metadata['match_annot_locations']);
+                            original_locations[i].push([original_image_lat, original_image_lon]);
                         }
                     }
                     else
