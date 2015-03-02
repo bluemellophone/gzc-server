@@ -269,6 +269,7 @@ def review(car, person):
     fix_minute = int(request.args.get('fix_hour', 0))
     fix_hour   = int(request.args.get('fix_minute', 0))
     fix_day    = int(request.args.get('fix_day', 0))
+    vip        = 'vip' in request.args
     # Build analysis list
     valid = False
     data = None
@@ -294,10 +295,16 @@ def review(car, person):
         else:
             offset = 0.0
         # Load first image
-        reported_time_first = vt.parse_exif_unixtime(join(person_dir, 'first.jpg'))
-        reported_time_first += offset
-        reported_time_last = vt.parse_exif_unixtime(join(person_dir, 'last.jpg'))
-        reported_time_last += offset
+        try:
+            reported_time_first = vt.parse_exif_unixtime(join(person_dir, 'first.jpg'))
+            reported_time_first += offset
+        except IOError:
+            reported_time_first = '-1'
+        try:
+            reported_time_last = vt.parse_exif_unixtime(join(person_dir, 'last.jpg'))
+            reported_time_last += offset
+        except IOError:
+            reported_time_last = '-1'
         # Load analysis
         analysis_list = []
         for species in ['zebra', 'giraffe']:
@@ -344,7 +351,7 @@ def review(car, person):
                        car_number=car_number, person=person,
                        analysis_dict=analysis_dict, data=data, valid=valid,
                        fix_minute=fix_minute, fix_hour=fix_hour, fix_day=fix_day,
-                       offset=offset)
+                       offset=offset, vip=vip)
 
 
 @app.route('/print/<car>/<person>')
@@ -470,7 +477,7 @@ def gps():
     time_hour    = request.form.get('gps_start_time_hour', '')
     time_minute  = request.form.get('gps_start_time_minute', '')
     track_number = request.form.get('track_number', '')
-    print("GPS SUBMITTED FOR %s %s %s" % (car_number, car_color, ))
+    print("GPS SUBMITTED FOR %s %s" % (car_number, car_color, ))
 
     # Validate
     if car_number not in CAR_NUMBER:
@@ -482,7 +489,8 @@ def gps():
     if time_minute not in TIME_MINUTE:
         return sf.response(205, '[gps] Time (minute) invalid')
     if track_number not in TRACK_NUMBERS:
-        return sf.response(205, '[gps] Track number invalid')
+        track_number = 1
+        # return sf.response(220, '[gps] Track number invalid')
 
     # return sf.response(999, '[gps] TEST')
 

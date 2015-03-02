@@ -284,7 +284,12 @@
         </style>
 
         <div class="row" id="splitter">
-            <div class="col-md-6" id="content-left" style="padding-left: 50px;">
+
+            {% if not vip %}
+                <div class="col-md-6" id="content-left" style="padding-left: 50px;">
+            {% else %}
+                <div class="col-md-12" id="content-left" style="padding-left: 50px;padding-right: 50px;">
+            {% endif %}
                 <ul class="nav nav-tabs" role="tablist">
                     {% for letter in analysis_dict.keys() %}
                         {% if letter == person %}
@@ -343,103 +348,204 @@
                 </div>
             </div>
 
-            <div class="col-md-6" id="content-right">
-                <div class="printarea">
-                    <div class="printarea-document">
-                        <!-- 
-                            <div id="content-container" class="us-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;"> 
-                        -->
-                        <div id="content-container" class="a4-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;">
-                            <div style="background-color:#fff; height:100%; widht:100%; padding: 35px 50px;">
-                                
-                                <div class="row" style="height:7%;">
-                                    <div class="col-xs-8 col-sm-8 col-md-8 notice-cell">
-                                        <img src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="height: 80px;margin-top: -7px;margin-left: -10px;margin-right: 10px;"/>
-                                         
-                                        <img src="{{ url_for('static', filename='images/logo_kwf.png') }}" style="height:70px;margin-top: 0px;margin-left: -10px;margin-right: 10px;"/>
+            {% if not vip %}
+                <div class="col-md-6" id="content-right">
+                    <div class="printarea">
+                        <div class="printarea-document">
+                            <!-- 
+                                <div id="content-container" class="us-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;"> 
+                            -->
+                            <div id="content-container" class="a4-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;">
+                                <div style="background-color:#fff; height:100%; widht:100%; padding: 35px 50px;">
+                                    
+                                    <div class="row" style="height:7%;">
+                                        <div class="col-xs-8 col-sm-8 col-md-8 notice-cell">
+                                            <img src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="height: 80px;margin-top: -7px;margin-left: -10px;margin-right: 10px;"/>
+                                             
+                                            <img src="{{ url_for('static', filename='images/logo_kwf.png') }}" style="height:70px;margin-top: 0px;margin-left: -10px;margin-right: 10px;"/>
 
-                                        <img src="{{ url_for('static', filename='images/logo_wd_alpha.png') }}" style="height: 62px;margin-top: -8px;margin-left: 0px;margin-right: 10px;"/>
-                                    </div>
-
-                                    <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
-                                        <div style="text-transform:uppercase;">
-                                            
+                                            <img src="{{ url_for('static', filename='images/logo_wd_alpha.png') }}" style="height: 62px;margin-top: -8px;margin-left: 0px;margin-right: 10px;"/>
                                         </div>
-                                        <div class="identification-container checkered identification-color-{{ car_color }}">
-                                            {% autoescape false %}
-                                                {{ car_number }}
-                                            {% endautoescape %}
-                                            {{ car_color }} {{ person }}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row" style="height:27%; margin: 0px;">
-                                    <!-- <div id="gps-map-canvas"></div> -->
-                                    <div id="gps-map-canvas-container" style="height: 100%; width: 100%; overflow: hidden; position: relative;"> 
-                                        <iframe id="gps-map-canvas" type="text/html" src="" style="width: 100%; overflow: hidden; border-style: none;"></iframe>
-                                    </div>
-                                    <div id="map-legend">
-                                        <div class="candidate-black"></div> 1<sup style="margin-right: 3px;">st</sup> Animal Locations
-                                        <br/>
-                                        <div class="candidate-red"></div> 2<sup>nd</sup> Animal Locations
-                                        <br/>
-                                        <div class="candidate-green"></div> 3<sup style="margin-right: 2px;">rd</sup> Animal Locations
-                                        <br/>
-                                    </div>
-                                </div>
 
-                                <div class="row candidate" style="height:2%; margin-top:1%;">
-                                    <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
-                                        Your Image of Animal
-                                    </div>
-                                    <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
-                                        Matched Image of Animal
-                                    </div>
-                                </div>
-
-                                {% for (i, color) in [(0, 'black'), (1, 'red'), (2, 'green')] %}
-                                    <div class="row candidate" id="candidate-match-{{ i }}" style="height:19%; margin-bottom:1%">
-                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
-                                            <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-original-name"></span></h4>
-                                            <div class="candidate-{{ color }}">
-                                                <img src="" />
+                                        <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
+                                            <div style="text-transform:uppercase;">
+                                                
                                             </div>
-                                            <p><span id="candidate-match-{{ i }}-original-time"></span></p>
-                                        </div>
-                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
-                                            <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-match-name"></span></h4>
-                                            <img src="" />
-                                            <p><span id="candidate-match-{{ i }}-match-time-lat-lon"></span></p>
-                                        </div>
-                                    </div>
-
-                                    <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%; display:none;">
-                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
-                                            <h4 style="margin: 0px;"><span id="candidate-new-{{ i }}-original-name"></span></h4>
-                                            <div class="candidate-{{ color }}">
-                                                <img src="" />
+                                            <div class="identification-container checkered identification-color-{{ car_color }}">
+                                                {% autoescape false %}
+                                                    {{ car_number }}
+                                                {% endautoescape %}
+                                                {{ car_color }} {{ person }}
                                             </div>
-                                            <p><span id="candidate-new-{{ i }}-original-time"></span></p>
-                                        </div>
-                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
-                                            <h2 style="margin-top: 10px; color: #428BCA !important;">Congratulations!</h2>
-                                            <p>You found a new animal!  This animal has been seen first <b>by you</b>.</p>
-                                            <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: <span id="candidate-new-{{ i }}-match-time"></span> </h4>
-                                            <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: <span id="candidate-new-{{ i }}-match-lat-lon"></span></h4>
-                                            <i><h3 style="margin-top: 0px; color: #999 !important;">Asante sana and come ujibambe!</h3></i>  
                                         </div>
                                     </div>
-                                {% endfor %}
+                                    
+                                    <div class="row" style="height:27%; margin: 0px;">
+                                        <!-- <div id="gps-map-canvas"></div> -->
+                                        <div id="gps-map-canvas-container" style="height: 100%; width: 100%; overflow: hidden; position: relative;"> 
+                                            <iframe id="gps-map-canvas" type="text/html" src="" style="width: 100%; overflow: hidden; border-style: none;"></iframe>
+                                        </div>
+                                        <div id="map-legend">
+                                            <div class="candidate-black"></div> 1<sup style="margin-right: 3px;">st</sup> Animal Locations
+                                            <br/>
+                                            <div class="candidate-red"></div> 2<sup>nd</sup> Animal Locations
+                                            <br/>
+                                            <div class="candidate-green"></div> 3<sup style="margin-right: 2px;">rd</sup> Animal Locations
+                                            <br/>
+                                        </div>
+                                    </div>
 
-                                <div class="row" style="height:1%; text-align: center; color: #777 !important; font-style: italic; margin-top: -10px;">
-                                    visit ibeis.org for more information
+                                    <div class="row candidate" style="height:2%; margin-top:1%;">
+                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                            Your Image of Animal
+                                        </div>
+                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                            Matched Image of Animal
+                                        </div>
+                                    </div>
+
+                                    {% for (i, color) in [(0, 'black'), (1, 'red'), (2, 'green')] %}
+                                        <div class="row candidate" id="candidate-match-{{ i }}" style="height:19%; margin-bottom:1%">
+                                            <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-original-name"></span></h4>
+                                                <div class="candidate-{{ color }}">
+                                                    <img src="" />
+                                                </div>
+                                                <p><span id="candidate-match-{{ i }}-original-time"></span></p>
+                                            </div>
+                                            <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-match-name"></span></h4>
+                                                <img src="" />
+                                                <p><span id="candidate-match-{{ i }}-match-time-lat-lon"></span></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%; display:none;">
+                                            <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-new-{{ i }}-original-name"></span></h4>
+                                                <div class="candidate-{{ color }}">
+                                                    <img src="" />
+                                                </div>
+                                                <p><span id="candidate-new-{{ i }}-original-time"></span></p>
+                                            </div>
+                                            <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                                <h2 style="margin-top: 10px; color: #428BCA !important;">Congratulations!</h2>
+                                                <p>You found a new animal!  This animal has been seen first <b>by you</b>.</p>
+                                                <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: <span id="candidate-new-{{ i }}-match-time"></span> </h4>
+                                                <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: <span id="candidate-new-{{ i }}-match-lat-lon"></span></h4>
+                                                <i><h3 style="margin-top: 0px; color: #999 !important;">Asante sana and come ujibambe!</h3></i>  
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                    <div class="row" style="height:1%; text-align: center; color: #777 !important; font-style: italic; margin-top: -10px;">
+                                        visit ibeis.org for more information
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="col-md-12" id="content-right" style="padding-top: 50px;">
+                    <div class="printarea">
+                        <div class="printarea-document">
+                            <!-- 
+                                <div id="content-container" class="us-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;"> 
+                            -->
+                            <div id="content-container" class="a4-letter" style="margin-left:auto; margin-right:auto; margin-top:0px; border: 1px solid #ddd;">
+                                <div style="background-color:#fff; height:100%; widht:100%; padding: 35px 50px;">
+                                    
+                                    <div class="row" style="height:7%;">
+                                        <div class="col-xs-8 col-sm-8 col-md-8 notice-cell">
+                                            <img src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="height: 80px;margin-top: -7px;margin-left: -10px;margin-right: 10px;"/>
+                                             
+                                            <img src="{{ url_for('static', filename='images/logo_kwf.png') }}" style="height:70px;margin-top: 0px;margin-left: -10px;margin-right: 10px;"/>
+
+                                            <img src="{{ url_for('static', filename='images/logo_wd_alpha.png') }}" style="height: 62px;margin-top: -8px;margin-left: 0px;margin-right: 10px;"/>
+                                        </div>
+
+                                        <div class="col-xs-4 col-sm-4 col-md-4 notice-cell">
+                                            <div style="text-transform:uppercase;">
+                                                
+                                            </div>
+                                            <div class="identification-container checkered identification-color-{{ car_color }}">
+                                                
+                                                VIP - {% autoescape false %}
+                                                    {{ car_number }}
+                                                {% endautoescape %}
+                                                {{ car_color }} {{ person }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row" style="height:27%; margin: 0px;">
+                                        <!-- <div id="gps-map-canvas"></div> -->
+                                        <div id="gps-map-canvas-container" style="height: 100%; width: 100%; overflow: hidden; position: relative;"> 
+                                            <iframe id="gps-map-canvas" type="text/html" src="" style="width: 100%; overflow: hidden; border-style: none;"></iframe>
+                                        </div>
+                                        <div id="map-legend">
+                                            <div class="candidate-black"></div> 1<sup style="margin-right: 3px;">st</sup> Animal Locations
+                                            <br/>
+                                            <div class="candidate-red"></div> 2<sup>nd</sup> Animal Locations
+                                            <br/>
+                                            <div class="candidate-green"></div> 3<sup style="margin-right: 2px;">rd</sup> Animal Locations
+                                            <br/>
+                                        </div>
+                                    </div>
+
+                                    <div class="row candidate" style="height:2%; margin-top:1%;">
+                                        <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                            Your Image of Animal
+                                        </div>
+                                        <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}" style="color: #999 !important; font-style: italic; background-color: transparent !important; border: none !important;">
+                                            Matched Image of Animal
+                                        </div>
+                                    </div>
+
+                                    {% for (i, color) in [(0, 'black'), (1, 'red'), (2, 'green')] %}
+                                        <div class="row candidate" id="candidate-match-{{ i }}" style="height:19%; margin-bottom:1%">
+                                            <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-original-name"></span></h4>
+                                                <div class="candidate-{{ color }}">
+                                                    <img src="" />
+                                                </div>
+                                                <p><span id="candidate-match-{{ i }}-original-time"></span></p>
+                                            </div>
+                                            <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-match-{{ i }}-match-name"></span></h4>
+                                                <img src="" />
+                                                <p><span id="candidate-match-{{ i }}-match-time-lat-lon"></span></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="row candidate" id="candidate-new-{{ i }}" style="height:19%; margin-bottom:1%; display:none;">
+                                            <div class="col-xs-4 col-sm-4 col-md-4 candidate-image-original" id="candidate-image-original-{{ i }}">
+                                                <h4 style="margin: 0px;"><span id="candidate-new-{{ i }}-original-name"></span></h4>
+                                                <div class="candidate-{{ color }}">
+                                                    <img src="" />
+                                                </div>
+                                                <p><span id="candidate-new-{{ i }}-original-time"></span></p>
+                                            </div>
+                                            <div class="col-xs-8 col-sm-8 col-md-8 candidate-image-match" id="candidate-image-match-{{ i }}">
+                                                <h2 style="margin-top: 10px; color: #428BCA !important;">Congratulations!</h2>
+                                                <p>You found a new animal!  This animal has been seen first <b>by you</b>.</p>
+                                                <h4 style="text-align: left; margin-bottom: 0px; padding-left: 17px;">First Seen On: <span id="candidate-new-{{ i }}-match-time"></span> </h4>
+                                                <h4 style="text-align: left; margin-top: 0px; padding-left: 17px;">First Seen At: <span id="candidate-new-{{ i }}-match-lat-lon"></span></h4>
+                                                <i><h3 style="margin-top: 0px; color: #999 !important;">Asante sana and come ujibambe!</h3></i>  
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                    <div class="row" style="height:1%; text-align: center; color: #777 !important; font-style: italic; margin-top: -10px;">
+                                        visit ibeis.org for more information
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     {% endif %}
 
