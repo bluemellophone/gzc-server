@@ -266,8 +266,8 @@ def review(car, person):
     # Process the car and person strings
     car_str, car_number, car_color, person = sf.process_person(car, person)
     # Load
-    fix_minute = int(request.args.get('fix_hour', 0))
-    fix_hour   = int(request.args.get('fix_minute', 0))
+    fix_minute = int(request.args.get('fix_minute', 0))
+    fix_hour   = int(request.args.get('fix_hour', 0))
     fix_day    = int(request.args.get('fix_day', 0))
     vip        = 'vip' in request.args
     # Build analysis list
