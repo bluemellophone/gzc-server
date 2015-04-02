@@ -56,3 +56,4 @@ target/
 # Import cache
 data/
 data_OLD/
+.DS_Store

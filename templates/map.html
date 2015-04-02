@@ -96,6 +96,12 @@
                 {% else %}
                     var original_locations = new Array();
                 {% endif %}    
+
+                {% if original_times %}
+                    var original_times = $.parseJSON('{{ original_times }}');
+                {% else %}
+                    var original_times = new Array();
+                {% endif %}    
                 
                 {% if match_locations %}
                     var match_locations = $.parseJSON('{{ match_locations }}');
@@ -113,6 +119,7 @@
             var image_height = 0;
 
             var last = undefined;
+            var left = false;
             $( window ).load( function() {
                 initValues();
                 centerMap();
@@ -125,18 +132,45 @@
                         if(last === undefined)
                         {
                             last = marker.time;
-                            // console.log("TRACK FIRST: " + last);
+                            console.log("TRACK FIRST: " + last);
                         }
                         else
                         {
                             last = marker.time;   
                         }
+
+                        if(! left)
+                        {
+                            lat_min = -1.340726
+                            lon_min = 36.792234
+                            lat_max = -1.341633
+                            lon_max = 36.793340
+                            if( (marker.lat > lat_min || lat_max > marker.lat) && (marker.lon < lon_min || lon_max < marker.lon) )
+                            {
+                                console.log("TRACK LEFT: " + last);
+                                left = true;
+                            }
+                        }
+
                         track[last] = [marker.lat, marker.lon];
                     });
-                    // console.log("TRACK LAST: " + last);
-                    drawTrack(track);
+                    console.log("TRACK LAST: " + last);
                 {% endif %}
+                drawTrack(track);
             });
+
+            function findClosestTime(metadata_time)
+            {
+                var index;
+                for( index in track )
+                {
+                    if(metadata_time < index)
+                    {
+                        return index;
+                    }
+                }
+                return index;
+            }
 
             function initValues()
             {
@@ -211,7 +245,7 @@
                     {
                         point = match_locations[index][index2];
                         // console.log(point);
-                        if(point !== null)
+                        if(point !== null && point !== undefined)
                         {
                             // point
                             lat_orig = point[0];
@@ -289,7 +323,7 @@
                 {
                     point = original_locations[index];
                     // console.log(point);
-                    if(point !== null)
+                    if(point !== null && point != undefined)
                     {
                         // point
                         lat_orig = point[0];
@@ -359,7 +393,65 @@
                         $('#gps-map-points').append('<div class="big-point ' + class_str + '" id="big-point-original-' + index + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"><div class="big-point-dot"></div></div>');
                     }
                 }
-                // console.log(seen);
+
+                var unixtime;
+                var first = true;
+                for(var index in original_times[0])
+                {
+                    unixtime = original_times[0][index] + {{ original_times_offset }};
+                    if(first)
+                    {
+                        console.log('POINTS START: ' + unixtime);
+                        first = false;
+                    }
+                    point = track[findClosestTime(unixtime)];
+                    if(point !== null && point != undefined)
+                    {
+                        // point
+                        lat_orig = point[0];
+                        lon_orig = point[1];
+                        mapped_point = mapPoint(lat_orig, lon_orig)
+                        lat = mapped_point[0] -= 5;
+                        lon = mapped_point[1] -= 5;
+                        counter = 0;
+                        zindex = 9999;
+                        
+                        class_str = 'candidate-black';
+                        color = '';
+                    
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" id="big-point-original-' + index + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"><div class="big-point-dot"></div></div>');
+                    }
+                }
+                console.log('POINTS END: ' + unixtime);
+
+                var first = true;
+                for(var index in original_times[1])
+                {
+                    unixtime = original_times[1][index];
+                    if(first)
+                    {
+                        console.log('OTHER START: ' + unixtime);
+                        first = false;
+                    }
+                    point = track[findClosestTime(unixtime)];
+                    if(point !== null && point != undefined)
+                    {
+                        // point
+                        lat_orig = point[0];
+                        lon_orig = point[1];
+                        mapped_point = mapPoint(lat_orig, lon_orig)
+                        lat = mapped_point[0] -= 5;
+                        lon = mapped_point[1] -= 5;
+                        counter = 0;
+                        zindex = 9999;
+                        
+                        class_str = 'candidate-green';
+                        color = '';
+                    
+                        $('#gps-map-points').append('<div class="big-point ' + class_str + '" id="big-point-original-' + index + '" style="top: ' + lat + 'px; left: ' + lon + 'px; background-color: ' + color + ' !important; z-index:' + zindex + '"><div class="big-point-dot"></div></div>');
+                    }
+                }
+                console.log('OTHER END: ' + unixtime);
             }
         </script>
 

@@ -541,7 +541,10 @@ def map_online():
     gpx_str = request.form.get('gps_data_str', None)
     car_str  = request.args.get('car_str', None)
     json_str = None
+    print("MAP REQUESTED FOR %s" % (car_str, ))
+
     if gpx_str is not None and len(gpx_str) > 0:
+        print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
         json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
     elif car_str is not None:
         # Build analysis list
@@ -555,6 +558,7 @@ def map_online():
         if gpx_data is not None:
             gpx_str = gpx_data.stream.read()
             if len(gpx_str) > 0:
+                print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
@@ -568,8 +572,10 @@ def map():
     gpx_str  = request.form.get('gps_data_str', None)
     offset   = request.args.get('offset', None)
     car_str  = request.args.get('car_str', None)
-    original_locations = request.args.get('original_locations', '[undefined, undefined, undefined]')
-    match_locations    = request.args.get('match_locations', '[undefined, undefined, undefined]')
+    original_locations = request.args.get('original_locations', '[]')
+    original_times     = request.form.get('original_times', '[]')
+    original_times_offset = request.form.get('original_times_offset', 0)
+    match_locations    = request.args.get('match_locations', '[]')
     json_str = None
     print("MAP REQUESTED FOR %s" % (car_str, ))
 
@@ -588,6 +594,7 @@ def map():
         if gpx_data is not None:
             gpx_str = gpx_data.stream.read()
             if len(gpx_str) > 0:
+                print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
         elif json_data is not None:
             json_str = json_data.stream.read()
@@ -595,6 +602,8 @@ def map():
         json_str = json_str.replace("'", '"')
     return sf.template('map', data=json_str, offset=offset,
                        original_locations=original_locations,
+                       original_times=original_times,
+                       original_times_offset=original_times_offset,
                        match_locations=match_locations)
 
 
