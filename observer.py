@@ -81,15 +81,16 @@ else:
 
 
 # TODO: update the species name for GIRAFFE_MASAI when the DB is ready
-# species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE_MASAI}
-species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
+# species_dict = {'zebra': const.TEST_SPECIES.ZEB_PLAIN, 'giraffe': const.TEST_SPECIES.GIR_MASAI}
+species_dict = {'zebra': const.TEST_SPECIES.ZEB_PLAIN, 'giraffe': const.TEST_SPECIES.GIR_RETICULATED}
 
 daid_list_zebra = ibsmap['zebra'].get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
 daid_list_giraffe = ibsmap['giraffe'].get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
 
 # build the query request objects for zebras and giraffes
-qreq_zebra = ibsmap['zebra'].new_query_request([], daid_list_zebra)
-qreq_giraffe = ibsmap['giraffe'].new_query_request([], daid_list_giraffe)
+print(daid_list_zebra)
+qreq_zebra = ibsmap['zebra'].new_query_request([1], daid_list_zebra)
+qreq_giraffe = ibsmap['giraffe'].new_query_request([1], daid_list_giraffe)
 
 qreq_dict = {'zebra': qreq_zebra, 'giraffe': qreq_giraffe}
 

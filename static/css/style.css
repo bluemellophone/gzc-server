@@ -44,7 +44,7 @@ html,body {
 .analysis-container
 {
   /*height:858px; */
-  height:950px; 
+  height:950px;
   overflow-y: scroll;
   overflow-x: hidden;
   padding-right:15px;
@@ -53,7 +53,7 @@ html,body {
 .analysis
 {
   /*background-color: red;*/
-  margin: 15px 0px; 
+  margin: 15px 0px;
   position: relative;
   display: table;
 }
@@ -131,7 +131,7 @@ html,body {
   width: 100%;
 }
 
-.candidate 
+.candidate
 {
   display: table;
   border-bottom: 1px #ddd solid;
@@ -151,7 +151,7 @@ html,body {
   height: auto;
   max-height: 135px;
   max-width: 100%;
-  /*  
+  /*
   -moz-box-shadow: 1px 1px 8px gray;
   -webkit-box-shadow: 1px 1px 8px gray;
   box-shadow: 1px 1px 8px gray;
@@ -249,9 +249,9 @@ html,body {
 }
 
 #gps-map-canvas
-{ 
-  height: 100%; 
-  margin: 0; 
+{
+  height: 100%;
+  margin: 0;
   padding: 0;
 }
 
@@ -309,10 +309,10 @@ html,body {
 
 .identification-container
 {
-  text-align: center; 
-  height: 80%; 
-  margin-top: 4px; 
-  padding: 13px; 
+  text-align: center;
+  height: 80%;
+  margin-top: 4px;
+  padding: 13px;
   color: #FFFFFF !important;
   font-size:22px;
   font-weight: bold;
@@ -380,63 +380,63 @@ a[href^="http://maps.google.com/maps"]
   display:none !important
 }
 
-.gmnoprint a, .gmnoprint span, .gm-style-cc 
+.gmnoprint a, .gmnoprint span, .gm-style-cc
 {
   display:none !important;
 }
 
-.gmnoprint div 
+.gmnoprint div
 {
   background:none !important;
 }
 
 .us-letter
 {
-  width:773px; 
-  height:1000px; 
+  width:773px;
+  height:1000px;
 }
 
 .us-letter-landscape
 {
-  width:1000px; 
-  height:772px; 
+  width:1000px;
+  height:771px;
 }
 
 .a4-letter
 {
-  width:773px; 
-  height:1092px; 
+  width:773px;
+  height:1092px;
 }
 
 .a4-letter-landscape
 {
-  width:1092px; 
-  height:773px; 
+  width:1092px;
+  height:773px;
 }
 
-.highlight-string 
-{ 
-  color: green; 
+.highlight-string
+{
+  color: green;
 }
 
-.highlight-number 
-{ 
-  color: purple; 
+.highlight-number
+{
+  color: purple;
 }
 
-.highlight-boolean 
-{ 
-  color: blue; 
+.highlight-boolean
+{
+  color: blue;
 }
 
-.highlight-null 
-{ 
-  color: black; 
+.highlight-null
+{
+  color: black;
 }
 
-.highlight-key 
-{ 
-  color: red; 
+.highlight-key
+{
+  color: red;
 }
 
 .card-row
@@ -506,7 +506,7 @@ a[href^="http://maps.google.com/maps"]
 .color-bar.identification-color-white
 {
   border-top: 0px !important;
-  border-color: #aaa !important; 
+  border-color: #aaa !important;
 }
 
 .color-bar > .col-no-pad
@@ -546,10 +546,10 @@ a[href^="http://maps.google.com/maps"]
 }
 
 /* Printing */
-@media print 
+@media print
 {
   /* Duplicate this CSS for printable.css */
-  @page 
+  @page
   {
       size: auto;   /* auto is the current printer page size */
       margin: 0mm;  /* this affects the margin in the printer settings */
@@ -580,7 +580,7 @@ a[href^="http://maps.google.com/maps"]
 
   .identification-color-white
   {
-    color: #333333 !important; 
+    color: #333333 !important;
   }
 
   .header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6
@@ -598,23 +598,23 @@ a[href^="http://maps.google.com/maps"]
   {
     margin: 0px;
   }
-  
+
   .content
   {
     margin-top: 0px !important;
   }
-  
+
   #content-left
   {
     height: 0px;
   }
 
-  #content-left.col-md-6 
+  #content-left.col-md-6
   {
     display: none !important;
   }
 
-  .printarea, .printarea * 
+  .printarea, .printarea *
   {
     visibility: visible !important;
   }

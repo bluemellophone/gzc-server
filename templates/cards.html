@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     <div class="printarea">
-        {% for page in page_list[0:1] %}
+        {% for page in page_list[1:] %}
         <div class="printarea-document">
             <div id="content-container" class="us-letter-landscape" style="margin-left:auto; margin-right:auto; margin-top:0px; margin-bottom:30px; border: 1px solid #ddd; padding:10px !important;">
                 {% for row in page %}
@@ -9,25 +9,52 @@
                     {% for cell in row %}
                     <div class="col-xs-4 col-sm-4 col-md-4">
                         <div class="card-cell">
-                            <div class="kwf-logo-container">
-                                <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_kwf_desat.png') }}"> 
-                            </div>
-
-                            <div class="color-bar identification-color-{{ cell[1] }}">
-                                <div class="col-no-pad col-xs-3 col-sm-3 col-md-3">{{ cell[0] }}</div>
-                                <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[1] }}</div>
-                                <div class="col-no-pad col-xs-3 col-sm-3 col-md-3">{{ cell[2] }}</div>
-                            </div> 
-
-                            <div class="cell-row" id="cell-row-1">
-                                <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
-                                    Image Local Time
-                                    <div class="hour-separation">:</div>
+                            {% if type == 1 %}
+                                <div class="kwf-logo-container">
+                                    <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_kwf_desat.png') }}">
                                 </div>
-                                <div class="col-xs-6 col-sm-6 col-md-6">
-                                    Image File Name
+
+                                <div class="color-bar identification-color-{{ cell[1] }}">
+                                    <div class="col-no-pad col-xs-3 col-sm-3 col-md-3">{{ cell[0] }}</div>
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[1] }}</div>
+                                    <div class="col-no-pad col-xs-3 col-sm-3 col-md-3">{{ cell[2] }}</div>
                                 </div>
-                            </div>  
+
+                                <div class="cell-row" id="cell-row-1">
+                                    <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                        Image Local Time
+                                        <div class="hour-separation">:</div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        Image File Name
+                                    </div>
+                                </div>
+                            {% elif type == 2 %}
+                                <div class="kwf-logo-container">
+                                    <div class="cell-row" id="cell-row-1" style="height: 134px; top: 0;">
+                                        <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                            <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:9px; max-width: none !important;">
+                                        </div>
+                                        <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}" style="margin-top:16px;"></div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="color-bar identification-color-white">
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[0] }}</div>
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[2] }}</div>
+                                </div>
+
+                                <script type="text/javascript">
+                                    $("#qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}").qrcode({
+                                        "size": 400,
+                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}"
+                                    });
+                                </script>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -35,6 +62,12 @@
                 {% endfor %}
             </div>
         </div>
+        <style>
+            .qr-code-container canvas {
+                width: 100px;
+                height: 100px;
+            }
+        </style>
 
         <div class="printarea-document">
             <div id="content-container" class="us-letter-landscape" style="margin-left:auto; margin-right:auto; margin-top:0px; margin-bottom:30px; border: 1px solid #ddd; padding:10px !important;">
@@ -43,10 +76,27 @@
                     {% for cell in range(3) %}
                     <div class="col-xs-4 col-sm-4 col-md-4">
                         <div class="card-cell">
-                            <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis.png') }}"> 
-                            <div class="background-information">
-                                ibeis.org
-                            </div>  
+                            {% if type == 1 %}
+                                <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis.png') }}">
+                                <div class="background-information">
+                                    ibeis.org
+                                </div>
+                            {% elif type == 2 %}
+                                <div class="cell-row" style="top: 0; border: none; height: 100%;">
+                                    <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                        <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="position: relative; height:80%; width: auto; max-width: none !important;">
+                                        <div style="color: #aaa !important;">
+                                            greatgrevysrally.com
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis.png') }}" style="position: relative; height:96%; width: auto; margin-left: -17px; z-index: -1; margin-top:-9px; max-width: none !important;">
+                                        <div style="margin-top: -18px; color: #aaa !important;">
+                                            ibeis.org
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}

@@ -366,7 +366,7 @@ if __name__ == '__main__':
                       'FRACTION_FOR_REVIEW': 0.8,
                       'MINIMUM_FOR_REVIEW': 8}
 
-    species_dict = {'zebra': const.Species.ZEB_PLAIN, 'giraffe': const.Species.GIRAFFE}
+    species_dict = {'zebra': const.TEST_SPECIES.ZEB_PLAIN, 'giraffe': const.TEST_SPECIES.GIR_RETICULATED}
 
     daid_list_zebra   = ibsmap['zebra'].get_valid_aids(is_exemplar=True, species=species_dict['zebra'], nojunk=True)
     daid_list_giraffe = ibsmap['giraffe'].get_valid_aids(is_exemplar=True, species=species_dict['giraffe'], nojunk=True)
