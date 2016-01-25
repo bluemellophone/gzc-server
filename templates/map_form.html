@@ -3,8 +3,8 @@
   <div class="jumbotron" style="text-align: center; width: 500px; margin-left: auto; margin-right: auto;">
     <h1>Process GPX / JSON Track</h1>
 
-    <form action="/map/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
-    <!-- <form action="/map_online/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;"> -->
+    <!-- <form action="/map/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;"> -->
+    <form action="/map_online/submit" method="post" enctype="multipart/form-data" style="width: 300px; margin-left: auto; margin-right: auto;text-align: left;">
         <div class="form-group">
             <label for="gps_data_gpx">GPS Track File (GPX)</label>
             <input type="file" name="gps_data_gpx" id="gps_data_gpx">
@@ -13,6 +13,11 @@
         <div class="form-group">
             <label for="gps_data_json">GPS Track File (JSON)</label>
             <input type="file" name="gps_data_json" id="gps_data_json">
+        </div>
+
+        <div class="form-group">
+            <label for="gps_data_nmea">GPS Track File (NMEA)</label>
+            <input type="file" name="gps_data_nmea" id="gps_data_nmea">
         </div>
 
         <input type="text" name="original_times" id="original_times" value="[1425134509]">

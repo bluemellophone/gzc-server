@@ -568,12 +568,18 @@ def map_online():
     else:
         gpx_data  = request.files.get('gps_data_gpx', None)
         json_data = request.files.get('gps_data_json', None)
+        nmea_data = request.files.get('gps_data_nmea', None)
         if gpx_data is not None:
             gpx_str = gpx_data.stream.read()
             if len(gpx_str) > 0:
                 print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
-        elif json_data is not None:
+        if json_str is None and nmea_data is not None:
+            nmea_str = nmea_data.stream.read()
+            if len(nmea_str) > 0:
+                print('MAP REQUESTED WITH NMEA_STR LENGTH: %d' % (len(nmea_str), ))
+                json_str = sf.convert_nmea_to_json(nmea_str, nmea_data.filename, GMT_OFFSET)
+        if json_str is None and json_data is not None:
             json_str = json_data.stream.read()
     if json_str is not None:
         json_str = json_str.replace("'", '"')
@@ -604,12 +610,18 @@ def map():
     else:
         gpx_data  = request.files.get('gps_data_gpx', None)
         json_data = request.files.get('gps_data_json', None)
+        nmea_data = request.files.get('gps_data_nmea', None)
         if gpx_data is not None:
             gpx_str = gpx_data.stream.read()
             if len(gpx_str) > 0:
                 print('MAP REQUESTED WITH GPX_STR LENGTH: %d' % (len(gpx_str), ))
                 json_str = sf.convert_gpx_to_json(gpx_str, GMT_OFFSET)
-        elif json_data is not None:
+        if json_str is None and nmea_data is not None:
+            nmea_str = nmea_data.stream.read()
+            if len(nmea_str) > 0:
+                print('MAP REQUESTED WITH NMEA_STR LENGTH: %d' % (len(nmea_str), ))
+                json_str = sf.convert_nmea_to_json(nmea_str, nmea_data.filename, GMT_OFFSET)
+        if json_str is None and json_data is not None:
             json_str = json_data.stream.read()
     if json_str is not None:
         json_str = json_str.replace("'", '"')

@@ -4,6 +4,7 @@ import flask
 from flask import request
 # Web Internal
 import xml.etree.ElementTree as ET
+import pynmea2
 import simplejson as json
 import cStringIO as StringIO
 # Image
@@ -211,6 +212,33 @@ def convert_gpx_to_json(gpx_str, GMT_OFFSET=0):
         posix += (60 * 60 * GMT_OFFSET)
         lat   = float(trkpt.get('lat'))
         lon   = float(trkpt.get('lon'))
+        json_list.append({
+            'time': posix,
+            'lat':  lat,
+            'lon':  lon,
+        })
+    return json.dumps({ "track": json_list })
+
+
+def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
+    json_list = []
+    filename = filename.strip('.LOG').strip('N')
+    year = 2000 + int(filename[0:2])
+    month = int(filename[2:4])
+    day = int(filename[4:6])
+    print(year, month, day)
+    for line in nmea_str.split('\n'):
+        line = line.strip()
+        if '@' in line or 'GPRMC' in line or len(line) == 0:
+            continue
+        record = pynmea2.parse(line)
+        dt = record.timestamp
+        dt = datetime(year, month, day, dt.hour, dt.minute, dt.second)
+        # Gather values
+        posix = int(dt.strftime("%s"))
+        posix += (60 * 60 * GMT_OFFSET)
+        lat   = float(record.latitude)
+        lon   = float(record.longitude)
         json_list.append({
             'time': posix,
             'lat':  lat,

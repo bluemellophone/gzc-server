@@ -12,8 +12,8 @@ function submit_cookie(name, value) {
 
 String.prototype.format = function() {
   var str = this;
-  for (var i = 0; i < arguments.length; i++) {       
-    var reg = new RegExp("\\{" + i + "\\}", "gm");             
+  for (var i = 0; i < arguments.length; i++) {
+    var reg = new RegExp("\\{" + i + "\\}", "gm");
     str = str.replace(reg, arguments[i]);
   }
   return str;
@@ -47,7 +47,7 @@ function submitPDF(car, person)
     });
 
     if(Object.keys(documents).length > 0)
-    {   
+    {
         console.log("SENDING");
         $.ajax({
             type: "POST",
@@ -57,7 +57,7 @@ function submitPDF(car, person)
         .done(function(response) {
             console.log("SENT");
         })
-        .fail(function(response) { 
+        .fail(function(response) {
             console.log("ERROR");
         });
     }
@@ -77,6 +77,30 @@ function loadGPSMap(track, markers, center)
             ]
         }
     ];
+
+    if(typeof center === 'undefined')
+    {
+        var min_lat = undefined;
+        var max_lat = undefined;
+        var min_lon = undefined;
+        var max_lon = undefined;
+        for (var index in track)
+        {
+            marker = track[index];
+            console.log(marker);
+            lat = marker[0];
+            lon = marker[1];
+            min_lat = Math.min(lat, undef(min_lat, lat));
+            max_lat = Math.max(lat, undef(max_lat, lat));
+            min_lon = Math.min(lon, undef(min_lon, lon));
+            max_lon = Math.max(lon, undef(max_lon, lon));
+        }
+
+        lat = (max_lat + min_lat) * 0.5;
+        lon = (max_lon + min_lon) * 0.5;
+        center = new google.maps.LatLng(lat, lon);
+        console.log("Auto Center: Lat " + lat +", Lon " + lon);
+    }
 
     // Initialize the Google Maps API v3
     var map = new google.maps.Map(document.getElementById('gps-map-canvas'), {
@@ -98,6 +122,7 @@ function loadGPSMap(track, markers, center)
         // console.log("Bottom Left: " + bounds['Ca']);
         // console.log("Top Right:   " + bounds['va']);
     });
+
 
     var last = undefined;
     for (var index in track)
@@ -168,7 +193,7 @@ function reorder(obj){
         keys.push(key);
     keys.sort();
     for(var index in keys)
-        temp[keys[index]] = reorder(obj[keys[index]]);       
+        temp[keys[index]] = reorder(obj[keys[index]]);
     return temp;
 }
 

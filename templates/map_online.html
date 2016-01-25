@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
-    
+
     <script type="text/javascript"
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
-    </script> 
-   
+    </script>
+
     <style type="text/css">
         #gps-map-canvas
         {
@@ -39,7 +39,7 @@
                     }
                     else
                     {
-                        last = marker.time;   
+                        last = marker.time;
                     }
                     track[last] = [marker.lat, marker.lon];
                 });
@@ -51,7 +51,9 @@
 
         function renderMap()
         {
-            var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
+            var center = undefined; // Auto
+            // var center = new google.maps.LatLng(0.212, 37.407462); // Lewa
+            // var center = new google.maps.LatLng(-1.369, 36.860); // Nairobi
             // var center = new google.maps.LatLng(42.728, -73.687); // Troy
             loadGPSMap(track, markers, center);
         }
