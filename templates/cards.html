@@ -31,14 +31,12 @@
                                 </div>
                             {% elif type == 2 %}
                                 <div class="kwf-logo-container">
-                                    <div class="cell-row" id="cell-row-1" style="height: 134px; top: 0;">
+                                    <div class="cell-row" id="cell-row-1" style="height: 163px; top: 0;">
                                         <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
                                             <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:9px; max-width: none !important;">
                                         </div>
                                         <div class="col-xs-6 col-sm-6 col-md-6">
                                             <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}" style="margin-top:16px;"></div>
-
-
                                         </div>
                                     </div>
                                 </div>
@@ -54,6 +52,35 @@
                                         "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}"
                                     });
                                 </script>
+                            {% elif type == 3 %}
+                                <div class="kwf-logo-container">
+                                    <div class="cell-row" id="cell-row-1" style="height: 163px; top: 0;">
+                                        <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                            <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:3px; max-width: none !important;">
+                                            <div style="font-size: 10px; color: #333;font-weight: 300; margin-top:-2px;"><i>January 27-28, 2018</i></div>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}" style="margin-top:21px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="color-bar identification-color-white">
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[0] }}</div>
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[2] }}</div>
+                                    <div id="snap">
+                                        <div style="position: absolute; left: .3%; top: 0%; width: 100%; font-weight: bold; line-height: 8px;">
+                                            <span class="glyphicon glyphicon glyphicon-camera" style="font-size: 20px"></span><br/><div style="margin-top: -1px">3-2-1<br/>SNAP</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script type="text/javascript">
+                                    $("#qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}").qrcode({
+                                        "size": 400,
+                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}&event=ggr2018"
+                                    });
+                                </script>
                             {% endif %}
                         </div>
                     </div>
@@ -64,8 +91,8 @@
         </div>
         <style>
             .qr-code-container canvas {
-                width: 100px;
-                height: 100px;
+                width: 120px;
+                height: 120px;
             }
         </style>
 
@@ -75,13 +102,15 @@
                 <div class="row card-row">
                     {% for cell in range(3) %}
                     <div class="col-xs-4 col-sm-4 col-md-4">
-                        <div class="card-cell">
-                            {% if type == 1 %}
+                        {% if type == 1 %}
+                            <div class="card-cell">
                                 <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ibeis.png') }}">
                                 <div class="background-information">
                                     ibeis.org
                                 </div>
-                            {% elif type == 2 %}
+                            </div>
+                        {% elif type == 2 %}
+                            <div class="card-cell">
                                 <div class="cell-row" style="top: 0; border: none; height: 100%;">
                                     <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
                                         <img class="ibeis-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="position: relative; height:80%; width: auto; max-width: none !important;">
@@ -96,8 +125,15 @@
                                         </div>
                                     </div>
                                 </div>
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% elif type == 3 %}
+                            <div class="card-cell" style="text-align: center">
+                                <img class="wb-logo" src="{{ url_for('static', filename='images/logo_wb.png') }}">
+                                <div class="background-information" style="margin: 0px; padding-top: 10px; color: #2a2728 !important;">
+                                    wildbook.org
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>

@@ -398,8 +398,8 @@ a[href^="http://maps.google.com/maps"]
 
 .us-letter-landscape
 {
-  width:1000px;
-  height:771px;
+  width:1170px;
+  height:902px;
 }
 
 .a4-letter
@@ -466,6 +466,12 @@ a[href^="http://maps.google.com/maps"]
   height: 170px;
 }
 
+.wb-logo
+{
+  height: 140px;
+  margin-top: 17px;
+}
+
 .kwf-logo-container
 {
   width:100%;
@@ -498,8 +504,8 @@ a[href^="http://maps.google.com/maps"]
   text-align: center;
   color: #FFF;
   padding: 10px;
-  font-size: 30px;
-  line-height: 14px;
+  font-size: 36px;
+  line-height: 18px;
   letter-spacing: 3px;
 }
 
@@ -543,6 +549,13 @@ a[href^="http://maps.google.com/maps"]
   margin-left: 60%;
   padding: 24px 0px;
   height: 100%;
+}
+
+#snap
+{
+  height: 0px;
+  font-size: 8px;
+  font-family: Arial;
 }
 
 /* Printing */

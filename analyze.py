@@ -81,14 +81,14 @@ def preprocess_fpath(ibsmap, species_dict, path_to_file, params):
         ibs = ibsmap
 
     # Add contributor to the database for this person
-    contrib_row_id = ibs.add_contributors(['IBEIS GZC Participant (%s, %s)' % (car, person, )])[0]  # NOQA
+    contributor_row_id = ibs.add_contributors(['IBEIS GZC Participant (%s, %s)' % (car, person, )])[0]  # NOQA
     offset_path = join(data_dir, 'images', car, person, 'offset.json')
     with open(offset_path, 'r') as off:
         data = json.load(off)
         offset = data.get('offset', 0.0)
         print('[analyze] Applying Offset: %0.2f' % (offset, ))
 
-    return car, person, animal, species, offset, contrib_row_id
+    return car, person, animal, species, offset, contributor_row_id
 
 
 def analyze(ibsmap, qreq_dict, species_dict, path_to_file_list, params):
@@ -124,7 +124,7 @@ def analyze(ibsmap, qreq_dict, species_dict, path_to_file_list, params):
 
     assert len(grouped_valid_tup_list) == len(grouped_path_list), 'lengths must match for zip'
     for groupx, (tup, valid_path_list) in enumerate(zip(grouped_valid_tup_list, grouped_path_list)):
-        car_list, person_list, animal_list, species_list, offset_list, contrib_row_id_list = zip(*tup)
+        car_list, person_list, animal_list, species_list, offset_list, contributor_row_id_list = zip(*tup)
 
         assert ut.list_allsame(species_list)
 
@@ -144,7 +144,7 @@ def analyze(ibsmap, qreq_dict, species_dict, path_to_file_list, params):
                 zip(reported_time_list, offset_list)
             ]
             ibs.set_image_unixtime(gid_list, actual_unixtime_list, duplicate_behavior='filter')
-            ibs.set_image_contributor_rowid(gid_list, contrib_row_id_list, duplicate_behavior='filter')
+            ibs.set_image_contributor_rowid(gid_list, contributor_row_id_list, duplicate_behavior='filter')
 
             print('[analyze] starting detection for %d images and species %s...' % (len(valid_path_list), species))
             qaids_list = ibs.detect_random_forest(gid_list, species=species)

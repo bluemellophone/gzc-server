@@ -1,4 +1,4 @@
-@page 
+@page
 {
   size: auto;   /* auto is the current printer page size */
   margin: 0mm;  /* this affects the margin in the printer settings */
@@ -27,6 +27,11 @@ color: #FFFFFF !important;
 color: #333333 !important;
 }
 
+.identification-color-white
+{
+color: #333333 !important;
+}
+
 .header, .header *, .footer, .footer *, .container, .printarea #content-container, #splitter, #splitter .col-md-6
 {
 padding: 0px !important;
@@ -38,22 +43,27 @@ margin: 0px !important;
 height: 0px !important;
 }
 
-
 .content-container
 {
 margin: 0px;
 }
+
 .content
 {
 margin-top: 0px !important;
 }
 
-#content-left.col-md-6 
+#content-left
+{
+height: 0px;
+}
+
+#content-left.col-md-6
 {
 display: none !important;
 }
 
-.printarea, .printarea * 
+.printarea, .printarea *
 {
 visibility: visible !important;
 }
@@ -65,6 +75,7 @@ top: 0;
 left: 0;
 margin-top: 0px !important;
 width:100% !important;
+height: 100% !important;
 height:inherit !important;
 overflow: visible !important;
 border: none !important;
