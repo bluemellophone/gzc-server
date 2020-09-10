@@ -6,7 +6,6 @@ from flask import request
 import xml.etree.ElementTree as ET
 import pynmea2
 import simplejson as json
-import cStringIO as StringIO
 # Image
 from PIL import Image
 import numpy as np
@@ -15,6 +14,7 @@ from os import mkdir
 from os.path import join, exists
 from datetime import datetime, date
 import re
+import io
 
 
 class NavbarClass(object):
@@ -88,7 +88,7 @@ def embed_image_html(image, filter_width=True):
         _width = 700
         _height = int((float(_width) / width) * height)
     image_pil = image_pil.resize((_width, _height))
-    string_buf = StringIO.StringIO()
+    string_buf = io.StringIO.StringIO()
     image_pil.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data

@@ -34,17 +34,17 @@ BROWSER = ut.get_argflag('--browser')
 # Ranges
 # TYPE 1
 CAR_COLORS = ['white', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'black']
-CAR_NUMBER = map(str, range(1, 25))  # 50
+CAR_NUMBER = list(map(str, range(1, 25)))  # 50
 PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f']  # , 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
 
 # TYPE 2
 CAR_COLORS = ['white']
-CAR_NUMBER = map(str, range(1, 253))  # 250
+CAR_NUMBER = list(map(str, range(1, 253)))  # 250
 PERSON_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f']  # , 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg', 'hh', 'ii', 'jj', 'kk', 'll', 'mm', 'nn', 'oo', 'pp', 'qq', 'rr', 'ss', 'tt', 'uu', 'vv', 'ww', 'xx', 'yy', 'zz']
 
-TIME_HOUR = map(str, range(0, 24))
-TIME_MINUTE = map(str, range(0, 60))
-TRACK_NUMBERS = map(str, range(1, 6))
+TIME_HOUR = list(map(str, range(0, 24)))
+TIME_MINUTE = list(map(str, range(0, 60)))
+TRACK_NUMBERS = list(map(str, range(1, 6)))
 
 # Defaults
 DEFAULT_PORT = 5000
@@ -96,11 +96,11 @@ def overview():
 
 
 @app.route('/cards')
-def cards(type=3):
+def cards(type=4):
     if type == 1:
         page_list = [ [ [ (1, 'red', 'a'), (24, 'blue', 'f'), (3, 'orange', 'd'), ], [ (18, 'purple', 'c'), (4, 'white', 'd'), (2, 'black', 'b'), ], [ (9, 'green', 'a'), (11, 'yellow', 'e'), (19, 'red', 'c'), ], [ (4, 'orange', 'b'), (3, 'blue', 'f'), (21, 'purple', 'a'), ], ] ]
     else:
-        page_list = [ [ [  ] ] ]
+        page_list = [ ]
 
     i = 1
     page = []

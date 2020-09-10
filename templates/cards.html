@@ -57,7 +57,7 @@
                                     <div class="cell-row" id="cell-row-1" style="height: 163px; top: 0;">
                                         <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
                                             <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:3px; max-width: none !important;">
-                                            <div style="font-size: 10px; color: #333;font-weight: 300; margin-top:-2px;"><i>January 27-28, 2018</i></div>
+                                            <div style="font-size: 10px; color: #333;font-weight: 300; margin-top:-2px;"><i>January 25-26, 2020</i></div>
                                         </div>
                                         <div class="col-xs-6 col-sm-6 col-md-6">
                                             <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}" style="margin-top:21px;"></div>
@@ -78,7 +78,39 @@
                                 <script type="text/javascript">
                                     $("#qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}").qrcode({
                                         "size": 400,
-                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}&event=ggr2018"
+                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}&event=ggr2020"
+                                    });
+                                </script>
+                            {% elif type == 4 %}
+                                <div class="kwf-logo-container">
+                                    <div class="cell-row" id="cell-row-1" style="height: 163px; top: 0;">
+                                        <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                            <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:3px; max-width: none !important;">
+                                            <div style="font-size: 10px; color: #333;font-weight: 300; margin-top:-2px;"><i>January 25-26, 2020</i></div>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}-day1" style="margin-top:21px;"></div>
+                                        </div>
+                                        <div class="day-circle" style="position: absolute; border: 1px #000 solid; border-radius: 20px; height: 40px; width: 40px; line-height: 14px; font-weight: bold; padding-top: 7px; left: 50%; margin-left: -20px; margin-top: 63px; background-color: white !important;">
+                                            DAY<br>1
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="color-bar identification-color-white">
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[0] }}</div>
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[2] }}</div>
+                                    <div id="snap">
+                                        <div style="position: absolute; left: .3%; top: 0%; width: 100%; font-weight: bold; line-height: 8px;">
+                                            <span class="glyphicon glyphicon glyphicon-camera" style="font-size: 20px"></span><br/><div style="margin-top: -1px">3-2-1<br/>SNAP</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script type="text/javascript">
+                                    $("#qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}-day1").qrcode({
+                                        "size": 400,
+                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}&event=ggr2020&day=1"
                                     });
                                 </script>
                             {% endif %}
@@ -98,9 +130,9 @@
 
         <div class="printarea-document">
             <div id="content-container" class="us-letter-landscape" style="margin-left:auto; margin-right:auto; margin-top:0px; margin-bottom:30px; border: 1px solid #ddd; padding:10px !important;">
-                {% for row in range(4) %}
+                {% for row in page %}
                 <div class="row card-row">
-                    {% for cell in range(3) %}
+                    {% for cell in row %}
                     <div class="col-xs-4 col-sm-4 col-md-4">
                         {% if type == 1 %}
                             <div class="card-cell">
@@ -132,6 +164,40 @@
                                 <div class="background-information" style="margin: 0px; padding-top: 10px; color: #2a2728 !important;">
                                     wildbook.org
                                 </div>
+                            </div>
+                        {% elif type == 4 %}
+                            <div class="card-cell">
+                                <div class="kwf-logo-container">
+                                    <div class="cell-row" id="cell-row-1" style="height: 163px; top: 0;">
+                                        <div class="col-xs-6 col-sm-6 col-md-6" style="border-right: 1px #aaa solid;">
+                                            <img class="kwf-logo" src="{{ url_for('static', filename='images/logo_ggr.png') }}" style="height: 90%; width: auto; margin-top:3px; max-width: none !important;">
+                                            <div style="font-size: 10px; color: #333;font-weight: 300; margin-top:-2px;"><i>January 25-26, 2020</i></div>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-6 col-md-6">
+                                            <div class="qr-code-container" id="qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}-day2" style="margin-top:21px;"></div>
+                                        </div>
+                                        <div class="day-circle" style="position: absolute; border: 1px #000 solid; border-radius: 20px; height: 40px; width: 40px; line-height: 14px; font-weight: bold; padding-top: 7px; left: 50%; margin-left: -20px; margin-top: 63px; background-color: #000 !important; color: #FFF !important;">
+                                            DAY<br>2
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="color-bar identification-color-white">
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[0] }}</div>
+                                    <div class="col-no-pad col-xs-6 col-sm-6 col-md-6">{{ cell[2] }}</div>
+                                    <div id="snap">
+                                        <div style="position: absolute; left: .3%; top: 0%; width: 100%; font-weight: bold; line-height: 8px;">
+                                            <span class="glyphicon glyphicon glyphicon-camera" style="font-size: 20px"></span><br/><div style="margin-top: -1px">3-2-1<br/>SNAP</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script type="text/javascript">
+                                    $("#qr-code-{{ cell[0] }}-{{ cell[1] }}-{{ cell[2] }}-day2").qrcode({
+                                        "size": 400,
+                                        "text": "http://www.greatgrevysrally.com/?car={{ cell[0] }}&person={{ cell[2] }}&event=ggr2020&day=2"
+                                    });
+                                </script>
                             </div>
                         {% endif %}
                     </div>
